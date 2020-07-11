@@ -8,6 +8,7 @@ use common\components\product\models\ProductModel;
 use common\components\product\models\ProductOfferImageModel;
 use common\components\product\models\ProductOfferModel;
 use common\components\retailcrm\RetailCrm;
+use common\components\settings\models\StatusModel;
 use common\components\site\models\SiteModel;
 use Exception;
 use Yii;
@@ -30,7 +31,7 @@ class RetailCrmController extends Controller
             $sitesList = RetailCrm::getSites();
             if (empty($sitesList)) {
                 Yii::info("Ошибка при выполнении процесса: Синхронизация магазинов\nНе удалось получить данные из RetailCRM", 'retailcrm');
-                return;
+                return ExitCode::OK;
             }
 
             $addingData = [];
@@ -103,7 +104,7 @@ class RetailCrmController extends Controller
             $products = RetailCrm::getProducts();
             if (empty($products)) {
                 Yii::info("Ошибка при выполнении процесса: Синхронизация товаров\nНе удалось получить данные из RetailCRM", 'retailcrm');
-                return;
+                return ExitCode::OK;
             }
 
             $addCount = 0;
@@ -236,6 +237,85 @@ class RetailCrmController extends Controller
             Yii::info("Завершение процесса: Синхронизация товаров\nКоличество добавленных записей: {$addCount}\nКоличество обновленных записей: {$updateCount}\nКоличество проигнорированных записей: {$ignoreCount}\n", 'retailcrm');
         } catch (Exception $e) {
             Yii::info("Ошибка при выполнении процесса: Синхронизация товаров\n{$e->getMessage()}", 'retailcrm');
+        }
+
+        return ExitCode::OK;
+    }
+
+    /**
+     * Синхронизация статусов
+     * @return int
+     */
+    public function actionStatuses()
+    {
+        try {
+            Yii::info("Старт процесса: Синхронизация статусов", 'retailcrm');
+            $statuses = RetailCrm::getStatuses();
+            if (empty($statuses)) {
+                Yii::info("Ошибка при выполнении процесса: Синхронизация статусов\nНе удалось получить данные из RetailCRM", 'retailcrm');
+                return ExitCode::OK;
+            }
+
+            $addingData = [];
+            $retailCrmStatusCodes = [];
+            $addCount = 0;
+            $ignoreCount = 0;
+            $updateCount = 0;
+            $statusList = StatusModel::find()->indexBy('code')->asArray()->all();
+
+            foreach ($statuses as $status) {
+                $retailCrmStatusCodes[] = $status['code'];
+                if (key_exists($status['code'], $statusList)) { // статус уже есть в БД
+                    $savedStatus = $statusList[$status['code']];
+                    // если есть изменения
+                    if ($status['name'] != $savedStatus['name'] || $status['active'] != $savedStatus['active'] || $status['ordering'] != $savedStatus['ordering']) {
+                        $data = [
+                            'name' => $status['name'],
+                            'active' => $status['active'],
+                            'ordering' => $status['ordering'],
+                        ];
+                        if (!$status['active']) {
+                            $data['available'] = false;
+                        }
+                        Yii::$app->db->createCommand()->update('status', $data, 'code = :code', [':code' => $status['code']])->execute();
+                        $updateCount++;
+                    } else {
+                        $ignoreCount++;
+                    }
+                } else { // статуса еще нет в БД
+                    $addingData[] = [
+                        'code' => $status['code'],
+                        'name' => $status['name'],
+                        'ordering' => $status['ordering'],
+                        'active' => $status['active'],
+                        'available' => false,
+                    ];
+                    $addCount++;
+                }
+            }
+
+            if (count($addingData) > 0) {
+                Yii::$app
+                    ->db
+                    ->createCommand()
+                    ->batchInsert('status', ['code', 'name', 'ordering', 'active', 'available'], $addingData)
+                    ->execute();
+            }
+
+            // если статус сохранен, но в retailCRM такого нет
+            foreach ($statusList as $item) {
+                if (!in_array($item['code'], $retailCrmStatusCodes)) {
+                    Yii::$app->db->createCommand()->update('status', [
+                        'active' => false,
+                        'available' => false,
+                    ], 'code = :code', [':code' => $item['code']])->execute();
+                    $updateCount++;
+                }
+            }
+
+            Yii::info("Завершение процесса: Синхронизация статусов\nКоличество добавленных записей: {$addCount}\nКоличество обновленных записей: {$updateCount}\nКоличество проигнорированных записей: {$ignoreCount}\n", 'retailcrm');
+        } catch (Exception $e) {
+            Yii::info("Ошибка при выполнении процесса: Синхронизация статусов\n{$e->getMessage()}", 'retailcrm');
         }
 
         return ExitCode::OK;

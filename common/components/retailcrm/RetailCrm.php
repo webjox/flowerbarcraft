@@ -44,6 +44,21 @@ class RetailCrm
     }
 
     /**
+     * Получение списка статусов
+     * @return array|null
+     */
+    public static function getStatuses()
+    {
+        $client = self::getInstance();
+        $response = $client->request->statusesList();
+        if ($response->getStatusCode() != 200 || !$response->isSuccessful() || empty($response->getResponse()['statuses'])) {
+            return null;
+        }
+
+        return $response->getResponse()['statuses'];
+    }
+
+    /**
      * Получение списка товаров
      * @return array|null
      */
