@@ -6,6 +6,7 @@ return [
     ],
     'vendorPath' => dirname(dirname(__DIR__)) . '/vendor',
     'language' => 'ru-RU',
+    'charset' => 'utf-8',
     'components' => [
         'cache' => [
             'class' => 'yii\caching\FileCache',
