@@ -1,12 +1,14 @@
 <?php
 
-/* @var $this \yii\web\View */
+/* @var $this View */
 /* @var $content string */
 
-use backend\assets\AppAsset;
+use common\models\User;
+use crm\assets\AppAsset;
 use yii\helpers\Html;
 use yii\bootstrap\Nav;
 use yii\bootstrap\NavBar;
+use yii\web\View;
 use yii\widgets\Breadcrumbs;
 use common\widgets\Alert;
 
@@ -35,16 +37,26 @@ AppAsset::register($this);
             'class' => 'navbar-inverse navbar-fixed-top',
         ],
     ]);
-    $menuItems = [
-        ['label' => 'Home', 'url' => ['/site/index']],
-    ];
+    if (Yii::$app->user->can(User::ROLE_ADMIN)) {
+        $menuItems = [
+            ['label' => 'Пользователи', 'url' => ['/user/default/list']],
+            ['label' => 'Настройки', 'url' => ['/settings/default/index']],
+        ];
+    } elseif (Yii::$app->user->can(User::ROLE_FLORIST)) {
+        $menuItems = [
+            ['label' => 'Заказы', 'url' => ['/order/default/list']],
+        ];
+    } else {
+        $menuItems = [];
+    }
+
     if (Yii::$app->user->isGuest) {
-        $menuItems[] = ['label' => 'Login', 'url' => ['/site/login']];
+        $menuItems[] = ['label' => 'Войти', 'url' => ['/site/login']];
     } else {
         $menuItems[] = '<li>'
             . Html::beginForm(['/site/logout'], 'post')
             . Html::submitButton(
-                'Logout (' . Yii::$app->user->identity->username . ')',
+                'Выйти (' . Yii::$app->user->identity->username . ')',
                 ['class' => 'btn btn-link logout']
             )
             . Html::endForm()
@@ -70,7 +82,7 @@ AppAsset::register($this);
     <div class="container">
         <p class="pull-left">&copy; <?= Html::encode(Yii::$app->name) ?> <?= date('Y') ?></p>
 
-        <p class="pull-right"><?= Yii::powered() ?></p>
+        <p class="pull-right"></p>
     </div>
 </footer>
 

@@ -1,11 +1,14 @@
 <?php
 namespace crm\controllers;
 
+use common\models\User;
 use Yii;
 use yii\web\Controller;
 use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
 use common\models\LoginForm;
+use yii\web\ForbiddenHttpException;
+use yii\web\Response;
 
 /**
  * Site controller
@@ -19,21 +22,18 @@ class SiteController extends Controller
     {
         return [
             'access' => [
-                'class' => AccessControl::className(),
+                'class' => AccessControl::class,
+                'only' => ['logout'],
                 'rules' => [
                     [
-                        'actions' => ['login', 'error'],
-                        'allow' => true,
-                    ],
-                    [
-                        'actions' => ['logout', 'index'],
+                        'actions' => ['logout'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
                 ],
             ],
             'verbs' => [
-                'class' => VerbFilter::className(),
+                'class' => VerbFilter::class,
                 'actions' => [
                     'logout' => ['post'],
                 ],
@@ -54,13 +54,18 @@ class SiteController extends Controller
     }
 
     /**
-     * Displays homepage.
-     *
-     * @return string
+     * @return Response
+     * @throws ForbiddenHttpException
      */
     public function actionIndex()
     {
-        return $this->render('index');
+        if (Yii::$app->user->can(User::ROLE_ADMIN)) {
+            return $this->redirect(['/user/default/list']);
+        } elseif (Yii::$app->user->can(User::ROLE_FLORIST)) {
+            return $this->redirect(['/order/default/list']);
+        }
+
+        throw new ForbiddenHttpException('Доступ запрещен');
     }
 
     /**
@@ -77,13 +82,12 @@ class SiteController extends Controller
         $model = new LoginForm();
         if ($model->load(Yii::$app->request->post()) && $model->login()) {
             return $this->goBack();
-        } else {
-            $model->password = '';
-
-            return $this->render('login', [
-                'model' => $model,
-            ]);
         }
+
+        $model->password = '';
+        return $this->render('login', [
+            'model' => $model,
+        ]);
     }
 
     /**

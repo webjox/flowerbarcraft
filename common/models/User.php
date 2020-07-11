@@ -1,9 +1,10 @@
 <?php
 namespace common\models;
 
+use common\components\site\models\SiteModel;
 use Yii;
 use yii\base\NotSupportedException;
-use yii\behaviors\TimestampBehavior;
+use yii\db\ActiveQuery;
 use yii\db\ActiveRecord;
 use yii\web\IdentityInterface;
 
@@ -12,22 +13,32 @@ use yii\web\IdentityInterface;
  *
  * @property integer $id
  * @property string $username
+ * @property string $name
  * @property string $password_hash
  * @property string $password_reset_token
  * @property string $verification_token
  * @property string $email
+ * @property int $site_id
  * @property string $auth_key
+ * @property int $group
  * @property integer $status
  * @property integer $created_at
  * @property integer $updated_at
+ * @property string $authKey
  * @property string $password write-only password
+ *
+ * @property SiteModel $site
  */
 class User extends ActiveRecord implements IdentityInterface
 {
     const STATUS_DELETED = 0;
-    const STATUS_INACTIVE = 9;
     const STATUS_ACTIVE = 10;
 
+    const GROUP_ADMIN = 10;
+    const GROUP_FLORIST = 20;
+
+    const ROLE_ADMIN = 'admin';
+    const ROLE_FLORIST = 'florist';
 
     /**
      * {@inheritdoc}
@@ -40,21 +51,18 @@ class User extends ActiveRecord implements IdentityInterface
     /**
      * {@inheritdoc}
      */
-    public function behaviors()
+    public function attributeLabels()
     {
         return [
-            TimestampBehavior::className(),
-        ];
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function rules()
-    {
-        return [
-            ['status', 'default', 'value' => self::STATUS_INACTIVE],
-            ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE, self::STATUS_DELETED]],
+            'username' => 'Логин',
+            'name' => 'Имя',
+            'password' => 'Пароль',
+            'email' => 'Почта',
+            'site_id' => 'Магазин',
+            'group' => 'Группа',
+            'status' => 'Статус',
+            'created_at' => 'Создан',
+            'updated_at' => 'Обновлен',
         ];
     }
 
@@ -109,10 +117,10 @@ class User extends ActiveRecord implements IdentityInterface
      * @param string $token verify email token
      * @return static|null
      */
-    public static function findByVerificationToken($token) {
+    public static function findByVerificationToken($token)
+    {
         return static::findOne([
             'verification_token' => $token,
-            'status' => self::STATUS_INACTIVE
         ]);
     }
 
@@ -208,5 +216,13 @@ class User extends ActiveRecord implements IdentityInterface
     public function removePasswordResetToken()
     {
         $this->password_reset_token = null;
+    }
+
+    /**
+     * @return ActiveQuery
+     */
+    public function getSite()
+    {
+        return $this->hasOne(SiteModel::class, ['id' => 'site_id']);
     }
 }
