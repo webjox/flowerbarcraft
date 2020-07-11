@@ -12,6 +12,7 @@ use common\components\site\models\SiteModel;
 use Exception;
 use Yii;
 use yii\console\Controller;
+use yii\console\ExitCode;
 
 /**
  * Class RetailCrmController
@@ -87,6 +88,8 @@ class RetailCrmController extends Controller
         } catch (Exception $e) {
             Yii::info("Ошибка при выполнении процесса: Синхронизация магазинов\n{$e->getMessage()}", 'retailcrm');
         }
+
+        return ExitCode::OK;
     }
 
     /**
@@ -234,5 +237,7 @@ class RetailCrmController extends Controller
         } catch (Exception $e) {
             Yii::info("Ошибка при выполнении процесса: Синхронизация товаров\n{$e->getMessage()}", 'retailcrm');
         }
+
+        return ExitCode::OK;
     }
 }
