@@ -2,6 +2,7 @@
 
 namespace console\controllers;
 
+use common\components\rbac\SiteRule;
 use common\components\rbac\UserGroupRule;
 use common\models\User;
 use Exception;
@@ -37,5 +38,15 @@ class RbacController extends Controller
         // Add roles in Yii::$app->authManager
         $authManager->add($admin);
         $authManager->add($florist);
+
+        $SiteRule = new SiteRule();
+        $authManager->add($SiteRule);
+
+        $inSite = $authManager->createPermission('inSite');
+        $inSite->description = 'In site';
+        $inSite->ruleName = $SiteRule->name;
+        $authManager->add($inSite);
+
+        $authManager->addChild($florist, $inSite);
     }
 }

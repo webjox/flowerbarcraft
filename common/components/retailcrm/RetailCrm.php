@@ -29,6 +29,27 @@ class RetailCrm
     }
 
     /**
+     * Получение списка файлов по id заказа в retailCRM
+     * @param $crmOrderId
+     * @return array|null
+     * @throws InvalidConfigException
+     */
+    public static function getFiles($crmOrderId)
+    {
+        $client = self::getInstance();
+        $response = $client->request->filesList(['orderIds' => [$crmOrderId]]);
+        if ($response->getStatusCode() != 200 || !$response->isSuccessful()) {
+            return null;
+        }
+
+        if (empty($response->getResponse()['files'])) {
+            return [];
+        }
+
+        return $response->getResponse()['files'];
+    }
+
+    /**
      * Получение списка магазинов
      * @return array|null
      */

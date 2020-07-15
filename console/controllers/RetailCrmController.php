@@ -2,6 +2,7 @@
 
 namespace console\controllers;
 
+use common\components\order\models\OrderUpdateQueueModel;
 use common\components\product\helpers\CompareHelper;
 use common\components\product\helpers\SaveHelper;
 use common\components\product\models\ProductModel;
@@ -11,6 +12,7 @@ use common\components\retailcrm\RetailCrm;
 use common\components\settings\models\StatusModel;
 use common\components\site\models\SiteModel;
 use Exception;
+use Throwable;
 use Yii;
 use yii\console\Controller;
 use yii\console\ExitCode;
@@ -319,5 +321,41 @@ class RetailCrmController extends Controller
         }
 
         return ExitCode::OK;
+    }
+
+    /**
+     * Очередь заказов на изменение статуса
+     * @throws Throwable
+     */
+    public function actionOrderQueue()
+    {
+        try {
+            $queue = OrderUpdateQueueModel::find()->all();
+            $crm = RetailCrm::getInstance();
+            if (!empty($queue)) {
+                foreach ($queue as $item) {
+                    /* @var $item OrderUpdateQueueModel */
+                    $order = $item->order ?? null;
+                    $site = $order->site->code ?? null;
+                    $status = $item->status->code ?? null;
+                    if ($order && $site && $status) {
+                        Yii::info("Старт процесса: Изменение статуса у заказа #{$order->crm_id}", 'retailcrm');
+                        $resp = $crm->request->ordersEdit([
+                            'id' => $order->crm_id,
+                            'status' => $status,
+                        ], 'id', $site);
+                        if ($resp->isSuccessful()) {
+                            $item->delete();
+                            Yii::info("Завершение процесса: Изменение статуса у заказа #{$order->crm_id}\nСтатус: success", 'retailcrm');
+                        } else {
+                            Yii::info("Завершение процесса: Изменение статуса у заказа #{$order->crm_id}\nСтатус: fail", 'retailcrm');
+                        }
+                        sleep(1);
+                    }
+                }
+            }
+        } catch (Exception $e) {
+            Yii::info("Ошибка при выполнении процесса: Изменение статуса у заказа\n{$e->getMessage()}", 'retailcrm');
+        }
     }
 }

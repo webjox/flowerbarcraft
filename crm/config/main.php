@@ -42,6 +42,14 @@ return [
                     'class' => 'yii\log\FileTarget',
                     'levels' => ['error', 'warning'],
                 ],
+                [
+                    'class' => 'yii\log\FileTarget',
+                    'levels' => ['info'],
+                    'categories' => ['retailcrm'],
+                    'logVars' => [],
+                    'logFile' => '@runtime/logs/retailcrm.log',
+                    'maxLogFiles' => 1000,
+                ],
             ],
         ],
         'settings' => [
@@ -61,6 +69,9 @@ return [
                 'user/<action:[a-z-]+>' => 'user/default/<action>',
                 'settings' => 'settings/default/index',
                 'orders' => 'order/default/list',
+                'order/<action:[a-z-]+>/<id:[0-9]+>' => 'order/default/<action>',
+                'order/<action:[a-z-]+>' => 'order/default/<action>',
+                'webhook/<action:[a-z-]+>' => 'webhook/<action>',
             ],
         ],
     ],
@@ -101,12 +112,15 @@ return [
                 ],
             ],
         ],
+        'gridview' =>  [
+            'class' => 'kartik\grid\Module',
+        ],
     ],
     'as access' => [
         'class' => 'yii\filters\AccessControl',
         'rules' => [
             [
-                'actions' => ['login', 'error'],
+                'actions' => ['login', 'error', 'order-changed'],
                 'allow' => true,
             ],
             [
