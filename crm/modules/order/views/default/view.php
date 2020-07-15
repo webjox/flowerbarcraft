@@ -84,14 +84,6 @@ $this->params['breadcrumbs'][] = $this->title;
         ],
         'columns' => [
             [
-                'label' => 'ID',
-                'attribute' => 'crm_id',
-            ],
-            [
-                'label' => 'ID товара',
-                'attribute' => 'crm_offer_id',
-            ],
-            [
                 'label' => 'Изображение',
                 'value' => function (OrderItemModel $data) {
                     return $data->offer->images[0]->image_url ?? null;
@@ -153,10 +145,6 @@ $this->params['breadcrumbs'][] = $this->title;
             'footer' => false
         ],
         'columns' => [
-            [
-                'label' => 'ID',
-                'attribute' => 'crm_id',
-            ],
             [
                 'label' => 'Статус',
                 'attribute' => 'status',
