@@ -131,7 +131,6 @@ $this->params['breadcrumbs'][] = $this->title;
             'delivery_address',
             'delivery_date:date',
             'delivery_time',
-            'deliveryCost:currency',
         ],
     ]) ?>
 
