@@ -7,6 +7,7 @@ use kartik\detail\DetailView;
 use kartik\editable\Editable;
 use kartik\grid\GridView;
 use yii\data\ArrayDataProvider;
+use yii\helpers\Html;
 use yii\web\View;
 
 /* @var $this View */
@@ -30,9 +31,7 @@ $this->params['breadcrumbs'][] = $this->title;
             'before' => false,
         ],
         'attributes' => [
-            'crm_id',
             'number',
-            'external_id',
             'siteName',
             [
                 'attribute' => 'status_id',
@@ -54,9 +53,7 @@ $this->params['breadcrumbs'][] = $this->title;
             ],
             'created_at:datetime',
             'customer',
-            'customerPhones',
-            'recipient_name',
-            'recipient_phone',
+            'recipient',
             'customer_comment',
             'manager_comment',
             'totalSumm:currency',
@@ -71,6 +68,7 @@ $this->params['breadcrumbs'][] = $this->title;
             'allModels' => $model->items,
             'pagination' => false,
         ]),
+        'responsiveWrap' => false,
         'emptyText' => 'Нет данных',
         'export' => false,
         'layout' => '{items}',
@@ -79,16 +77,25 @@ $this->params['breadcrumbs'][] = $this->title;
         'panel' => [
             'heading' => '<h3 class="panel-title">Позиции</h3>',
             'before' => false,
-            'after' => false,
-            'footer' => false
+            'after' => Html::beginTag('div', ['style' => 'text-align: right;']) .
+                Html::tag('b', 'Стоимость доставки: ' . Yii::$app->formatter->format($model->deliveryCost, 'currency')) .
+                Html::tag('br') .
+                Html::tag('b', 'Сумма: ' . Yii::$app->formatter->format($model->totalSumm, 'currency')) .
+                Html::endTag('div'),
+            'footer' => false,
         ],
         'columns' => [
             [
                 'label' => 'Изображение',
                 'value' => function (OrderItemModel $data) {
-                    return $data->offer->images[0]->image_url ?? null;
+                    $imgSrc = $data->offer->images[0]->image_url ?? null;
+                    if (!$imgSrc) {
+                        return null;
+                    }
+                    return Html::a(Html::img($imgSrc, ['width' => '100', 'alt' => '']), $imgSrc, ['target' => '_blank']);
                 },
-                'format' => ['image', ['width' => '100']],
+                'format' => 'raw',
+                'headerOptions' => ['style' => 'width: 117px;'],
             ],
             [
                 'label' => 'Название',
@@ -133,6 +140,7 @@ $this->params['breadcrumbs'][] = $this->title;
             'allModels' => $model->payments,
             'pagination' => false,
         ]),
+        'responsiveWrap' => false,
         'emptyText' => 'Нет данных',
         'export' => false,
         'layout' => '{items}',

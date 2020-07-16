@@ -25,6 +25,7 @@ $statusList = Order::getAvailableStatuses();
     <?= GridView::widget([
         'filterModel' => $searchModel,
         'dataProvider' => $dataProvider,
+        'responsiveWrap' => false,
         'panel' => [
             'heading' => '<h3 class="panel-title">' . $this->title . '</h3>',
             'before' => false,
@@ -46,7 +47,7 @@ $statusList = Order::getAvailableStatuses();
                         $offer = $item->offer;
                         if ($offer && $offer->images) {
                             $url = $offer->images[0]->image_url;
-                            $img = Html::a(Html::img($url, ['width' => 30, 'height' => 30]), $url, [
+                            $img = Html::a(Html::img($url, ['width' => 45, 'height' => 45]), $url, [
                                 'target' => '_blank',
                                 'style' => 'margin-right: 10px',
                             ]);
@@ -67,45 +68,11 @@ $statusList = Order::getAvailableStatuses();
             ],
             [
                 'label' => 'Получатель',
-                'value' => function (Order $model) {
-                    $data = [];
-                    if ($model->recipient_name) {
-                        $data[] = $model->recipient_name;
-                    }
-                    if ($model->recipient_phone) {
-                        $data[] = $model->recipient_phone;
-                    }
-                    if (empty($data)) {
-                        return '-';
-                    }
-                    return implode(', ', $data);
-                },
+                'attribute' => 'recipient',
             ],
             [
                 'label' => 'Заказчик',
-                'value' => function (Order $model) {
-                    $data = [];
-                    if ($model->customer_last_name) {
-                        $data[] = $model->customer_last_name;
-                    }
-                    if ($model->customer_first_name) {
-                        $data[] = $model->customer_first_name;
-                    }
-                    if ($model->customer_patronymic) {
-                        $data[] = $model->customer_patronymic;
-                    }
-                    if ($model->customer_phone && $model->customer_additional_phone) {
-                        $data[] = "{$model->customer_phone} ({$model->customer_additional_phone})";
-                    } elseif ($model->customer_phone) {
-                        $data[] = $model->customer_phone;
-                    } elseif ($model->customer_additional_phone) {
-                        $data[] = $model->customer_additional_phone;
-                    }
-                    if (empty($data)) {
-                        return '-';
-                    }
-                    return implode(' ', $data);
-                }
+                'attribute' => 'customer',
             ],
             [
                 'label' => 'Адрес доставки',

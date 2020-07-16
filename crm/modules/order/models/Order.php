@@ -14,6 +14,18 @@ use yii\web\BadRequestHttpException;
 /**
  * Class Order
  * @package crm\modules\order\models
+ *
+ * @property-read int $totalSumm
+ * @property-read int $toPaySumm
+ * @property-read null|string $statusName
+ * @property-read null|string $siteName
+ * @property-read null|string $customerPhones
+ * @property-read string $fileList
+ * @property-read int $deliveryCost
+ * @property-read null|string $customer
+ * @property-read null|string $customerName
+ * @property-read null|string $recipient
+ * @property-read int $prepaySum
  */
 class Order extends OrderModel
 {
@@ -50,8 +62,9 @@ class Order extends OrderModel
             'siteName' => 'Магазин',
             'external_id' => 'Внешний ID',
             'created_at' => 'Дата оформления',
-            'customer' => 'ФИО заказчика',
+            'customer' => 'Заказчик',
             'customerPhones' => 'Тел. заказчика',
+            'recipient' => 'Получатель',
             'recipient_name' => 'ФИО получателя',
             'recipient_phone' => 'Тел. получателя',
             'customer_comment' => 'Комментарий клиента',
@@ -136,7 +149,43 @@ class Order extends OrderModel
     /**
      * @return string|null
      */
+    public function getRecipient()
+    {
+        $data = [];
+        if ($this->recipient_name) {
+            $data[] = $this->recipient_name;
+        }
+        if ($this->recipient_phone) {
+            $data[] = $this->recipient_phone;
+        }
+        if (empty($data)) {
+            return null;
+        }
+        return implode(', ', $data);
+    }
+
+    /**
+     * @return string
+     */
     public function getCustomer()
+    {
+        $data = [];
+        if ($this->customerName) {
+            $data[] = $this->customerName;
+        }
+        if ($this->customerPhones) {
+            $data[] = $this->customerPhones;
+        }
+        if (empty($data)) {
+            return null;
+        }
+        return implode(', ', $data);
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getCustomerName()
     {
         $data = [];
         if ($this->customer_last_name) {
