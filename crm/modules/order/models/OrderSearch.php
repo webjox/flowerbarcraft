@@ -64,8 +64,8 @@ class OrderSearch extends Order
                 'attributes' => [
                     'crm_id',
                     'date' => [
-                        'asc' => ['delivery_date' => SORT_ASC, new Expression('delivery_time_ordering IS NULL ASC')],
-                        'desc' => ['delivery_date' => SORT_DESC, new Expression('delivery_time_ordering IS NULL DESC')],
+                        'asc' => ['delivery_date' => SORT_ASC, new Expression('delivery_time_ordering IS NULL'), 'delivery_time_ordering' => SORT_ASC],
+                        'desc' => ['delivery_date' => SORT_DESC, new Expression('delivery_time_ordering IS NULL'), 'delivery_time_ordering' => SORT_DESC],
                         'default' => SORT_ASC
                     ],
                 ],
