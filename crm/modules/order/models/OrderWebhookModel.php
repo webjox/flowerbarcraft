@@ -29,6 +29,16 @@ class OrderWebhookModel extends Model
     public $customer_comment;
     public $manager_comment;
     public $delivery_address;
+    public $delivery_address_city;
+    public $delivery_address_street;
+    public $delivery_address_building;
+    public $delivery_address_house;
+    public $delivery_address_housing;
+    public $delivery_address_block;
+    public $delivery_address_flat;
+    public $delivery_address_floor;
+    public $delivery_address_metro;
+    public $delivery_address_notes;
     public $delivery_date;
     public $delivery_time;
     public $delivery_time_ordering;
