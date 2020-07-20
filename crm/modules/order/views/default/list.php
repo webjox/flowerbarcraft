@@ -85,9 +85,7 @@ $statusList = Order::getAvailableStatuses();
             ],
             [
                 'label' => 'Адрес доставки',
-                'value' => function (Order $model) {
-                    return $model->delivery_address ?: '-';
-                }
+                'attribute' => 'deliveryAddress',
             ],
             [
                 'label' => 'Получатель',

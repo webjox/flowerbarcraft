@@ -25,6 +25,7 @@ use yii\web\BadRequestHttpException;
  * @property-read null|string $customer
  * @property-read null|string $customerName
  * @property-read null|string $recipient
+ * @property-read string $deliveryAddress
  * @property-read int $prepaySum
  */
 class Order extends OrderModel
@@ -70,6 +71,7 @@ class Order extends OrderModel
             'customer_comment' => 'Комментарий клиента',
             'manager_comment' => 'Комментарий оператора',
             'delivery_address' => 'Адрес',
+            'deliveryAddress' => 'Адрес',
             'delivery_date' => 'Дата',
             'delivery_time' => 'Время',
             'deliveryCost' => 'Стоимость',
@@ -220,6 +222,54 @@ class Order extends OrderModel
             return null;
         }
         return implode(' ', $data);
+    }
+
+    /**
+     * @return string
+     */
+    public function getDeliveryAddress()
+    {
+        $data = [];
+        if (!empty($this->delivery_address_city)) {
+            $data[] = $this->delivery_address_city;
+        }
+        if (!empty($this->delivery_address_street)) {
+            $data[] = $this->delivery_address_street;
+        }
+        if (!empty($this->delivery_address_building)) {
+            $data[] = "д. {$this->delivery_address_building}";
+        }
+        if (!empty($this->delivery_address_house)) {
+            $data[] = "стр. {$this->delivery_address_house}";
+        }
+        if (!empty($this->delivery_address_housing)) {
+            $data[] = "корп. {$this->delivery_address_housing}";
+        }
+        if (!empty($this->delivery_address_block)) {
+            $data[] = "под. {$this->delivery_address_block}";
+        }
+        if (!empty($this->delivery_address_flat)) {
+            $data[] = "кв./офис {$this->delivery_address_flat}";
+        }
+        if (!empty($this->delivery_address_floor)) {
+            $data[] = "эт. {$this->delivery_address_floor}";
+        }
+        if (!empty($this->delivery_address_metro)) {
+            $data[] = "метро {$this->delivery_address_metro}";
+        }
+        if (!empty($this->delivery_address_notes)) {
+            if (empty($data)) {
+                $data[] = $this->delivery_address_notes;
+            } else {
+                $data[] = "({$this->delivery_address_notes})";
+            }
+        }
+
+        if (empty($data)) {
+            return $this->delivery_address ?: '-';
+        }
+
+        return implode(', ', $data);
     }
 
     /**

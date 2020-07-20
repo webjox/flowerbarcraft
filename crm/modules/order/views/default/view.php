@@ -128,7 +128,7 @@ $this->params['breadcrumbs'][] = $this->title;
             'heading' => 'Доставка',
         ],
         'attributes' => [
-            'delivery_address',
+            'deliveryAddress',
             'delivery_date:date',
             'delivery_time',
         ],
