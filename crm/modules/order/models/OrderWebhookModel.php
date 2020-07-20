@@ -60,8 +60,11 @@ class OrderWebhookModel extends Model
                     'customer_last_name', 'customer_first_name', 'customer_patronymic',
                     'customer_phone', 'customer_additional_phone', 'recipient_name', 'to_pay_summ',
                     'recipient_phone', 'customer_comment', 'manager_comment', 'delivery_address',
-                    'delivery_date', 'delivery_time', 'delivery_cost', 'total_summ', 'prepay_sum',
-                    'delivery_time_ordering',
+                    'delivery_address_city', 'delivery_address_street', 'delivery_address_building',
+                    'delivery_address_house', 'delivery_address_housing', 'delivery_address_block',
+                    'delivery_address_flat', 'delivery_address_floor', 'delivery_address_metro',
+                    'delivery_address_notes', 'delivery_date', 'delivery_time', 'delivery_cost',
+                    'total_summ', 'prepay_sum', 'delivery_time_ordering',
                 ],
                 'safe'
             ],

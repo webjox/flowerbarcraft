@@ -27,6 +27,16 @@ use yii\db\ActiveRecord;
  * @property string $customer_comment
  * @property string $manager_comment
  * @property string $delivery_address
+ * @property string $delivery_address_city [varchar(255)]
+ * @property string $delivery_address_street [varchar(255)]
+ * @property string $delivery_address_building [varchar(255)]
+ * @property string $delivery_address_house [varchar(255)]
+ * @property string $delivery_address_housing [varchar(255)]
+ * @property string $delivery_address_block [varchar(255)]
+ * @property string $delivery_address_flat [varchar(255)]
+ * @property string $delivery_address_floor [varchar(255)]
+ * @property string $delivery_address_metro [varchar(255)]
+ * @property string $delivery_address_notes
  * @property string $delivery_date [date]
  * @property string $delivery_time [varchar(255)]
  * @property int $delivery_time_ordering [int(11)]

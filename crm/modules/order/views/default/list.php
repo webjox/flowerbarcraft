@@ -32,54 +32,6 @@ $statusList = Order::getAvailableStatuses();
             'after' => false,
         ],
         'columns' => [
-            'crm_id',
-            [
-                'label' => 'Товары',
-                'value' => function (Order $model) {
-                    $items = $model->items;
-                    if (empty($items)) {
-                        return '-';
-                    }
-                    $li = '';
-                    foreach ($items as $item) {
-                        $name = $item->name;
-                        $img = null;
-                        $offer = $item->offer;
-                        if ($offer && $offer->images) {
-                            $url = $offer->images[0]->image_url;
-                            $img = Html::a(Html::img($url, ['width' => 45, 'height' => 45]), $url, [
-                                'target' => '_blank',
-                                'style' => 'margin-right: 10px',
-                            ]);
-                        }
-                        $li .= Html::tag('li', $img . $name);
-                    }
-                    return Html::tag('ul', $li, ['style' => 'list-style: none; padding-left:0']);
-                },
-                'format' => 'raw',
-            ],
-            [
-                'label' => 'Сумма',
-                'attribute' => 'total_summ',
-                'value' => function (Order $model) {
-                    $sum = $model->total_summ ?: 0;
-                    return Yii::$app->formatter->asCurrency($sum / 100);
-                },
-            ],
-            [
-                'label' => 'Получатель',
-                'attribute' => 'recipient',
-            ],
-            [
-                'label' => 'Заказчик',
-                'attribute' => 'customer',
-            ],
-            [
-                'label' => 'Адрес доставки',
-                'value' => function (Order $model) {
-                    return $model->delivery_address ?: '-';
-                }
-            ],
             [
                 'label' => 'Дата и время доставки',
                 'attribute' => 'date',
@@ -107,6 +59,45 @@ $statusList = Order::getAvailableStatuses();
                 'headerOptions' => ['style' => 'width: 240px;'],
             ],
             [
+                'label' => 'Товары',
+                'value' => function (Order $model) {
+                    $items = $model->items;
+                    if (empty($items)) {
+                        return '-';
+                    }
+                    $li = '';
+                    foreach ($items as $item) {
+                        $name = $item->name;
+                        $img = null;
+                        $offer = $item->offer;
+                        if ($offer && $offer->images) {
+                            $url = $offer->images[0]->image_url;
+                            $img = Html::a(Html::img($url, ['width' => 45, 'height' => 45]), $url, [
+                                'target' => '_blank',
+                                'style' => 'margin-right: 10px',
+                            ]);
+                        }
+                        $li .= Html::tag('li', $img . $name);
+                    }
+                    return Html::tag('ul', $li, ['style' => 'list-style: none; padding-left:0']);
+                },
+                'format' => 'raw',
+            ],
+            [
+                'label' => 'Адрес доставки',
+                'value' => function (Order $model) {
+                    return $model->delivery_address ?: '-';
+                }
+            ],
+            [
+                'label' => 'Получатель',
+                'attribute' => 'recipient',
+            ],
+            [
+                'label' => 'Заказчик',
+                'attribute' => 'customer',
+            ],
+            [
                 'class' => EditableColumn::class,
                 'attribute' => 'status_id',
                 'readonly' => false,
@@ -128,6 +119,15 @@ $statusList = Order::getAvailableStatuses();
                     "data" => $statusList,
                 ],
             ],
+            [
+                'label' => 'Сумма',
+                'attribute' => 'total_summ',
+                'value' => function (Order $model) {
+                    $sum = $model->total_summ ?: 0;
+                    return Yii::$app->formatter->asCurrency($sum / 100);
+                },
+            ],
+            'crm_id',
             [
                 'class' => 'yii\grid\ActionColumn',
                 'template' => '{view}'
