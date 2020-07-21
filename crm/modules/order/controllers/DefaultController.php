@@ -9,6 +9,7 @@ use kartik\grid\EditableColumnAction;
 use Yii;
 use yii\filters\AccessControl;
 use yii\helpers\ArrayHelper;
+use yii\helpers\Html;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
@@ -61,7 +62,10 @@ class DefaultController extends Controller
                 'class' => EditableColumnAction::class,
                 'modelClass' => Order::class,
                 'outputValue' => function ($model) {
-                    return $model->status->name ?? null;
+                    return $model->status ? Html::tag('span', $model->status->name, [
+                        'class' => 'btn btn-status',
+                        'style' => "background: {$model->status->bgColor}"
+                    ]) : '-';
                 },
             ]
         ]);

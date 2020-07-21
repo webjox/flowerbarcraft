@@ -3,7 +3,6 @@
 namespace crm\modules\settings\forms;
 
 use common\components\settings\models\SettingsModel;
-use common\components\settings\models\StatusModel;
 use yii\base\Model;
 
 /**
@@ -17,8 +16,6 @@ class SettingsForm extends Model
     public $retailCrmUrl;
     public $retailCrmApiKey;
 
-    protected $_retailCrmStatuses;
-
     /**
      * @inheritDoc
      */
@@ -27,7 +24,6 @@ class SettingsForm extends Model
         return [
             [['retailCrmUrl', 'retailCrmApiKey'], 'required'],
             [['retailCrmUrl', 'retailCrmApiKey'], 'string'],
-            ['retailCrmStatuses', 'safe'],
         ];
     }
 
@@ -53,27 +49,7 @@ class SettingsForm extends Model
         return [
             'retailCrmUrl' => 'Адрес retailCRM',
             'retailCrmApiKey' => 'API-ключ retailCRM',
-            'retailCrmStatuses' => 'Список статусов заказов',
         ];
-    }
-
-    /**
-     * @return array
-     */
-    public function getRetailCrmStatuses()
-    {
-        return StatusModel::find()
-            ->select(['id'])
-            ->where(['available' => true])
-            ->column();
-    }
-
-    /**
-     * @param $value
-     */
-    public function setRetailCrmStatuses($value)
-    {
-        $this->_retailCrmStatuses = $value;
     }
 
     /**
@@ -89,12 +65,6 @@ class SettingsForm extends Model
         $attributes = $this->getAttributes(null, [SettingsModel::PARAM_CRM_STATUS_LIST]);
         foreach ($attributes as $attribute => $value) {
             $this->saveAttribute($attribute, $value);
-        }
-
-        $statusIds = implode(',', array_values($this->_retailCrmStatuses));
-        if (!empty($statusIds)) {
-            StatusModel::updateAll(['available' => true], "id IN ({$statusIds})");
-            StatusModel::updateAll(['available' => false], "id NOT IN ({$statusIds})");
         }
 
         return true;

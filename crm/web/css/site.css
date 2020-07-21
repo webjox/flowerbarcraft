@@ -119,3 +119,27 @@ a.desc:after {
 .nav > li > form > button.logout:focus {
     outline: none;
 }
+
+#status-color-cont {
+    padding: 4px 10px;
+}
+
+#order-list .kv-editable-link,
+#order-info .kv-editable-link {
+    padding: 0;
+    border-bottom: none;
+}
+
+#order-list .kv-editable-link:hover,
+#order-info .kv-editable-link:hover {
+    color: #ffffff;
+}
+
+.btn-status {
+    color: #ffffff;
+    padding: 2px 5px;
+}
+
+.btn-status:hover {
+    color: #ffffff;
+}

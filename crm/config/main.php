@@ -26,6 +26,10 @@ return [
             'assignmentFile' => '@common/components/rbac/assignments.php',
             'ruleFile' => '@common/components/rbac/rules.php'
         ],
+        'assetManager' => [
+            'linkAssets' => true,
+            'appendTimestamp' => true,
+        ],
         'user' => [
             'identityClass' => 'common\models\User',
             'enableAutoLogin' => true,
@@ -68,6 +72,7 @@ return [
                 'user/<action:[a-z-]+>/<id:[0-9]+>' => 'user/default/<action>',
                 'user/<action:[a-z-]+>' => 'user/default/<action>',
                 'settings' => 'settings/default/index',
+                'settings/status-update/<id:[0-9]+>' => 'settings/default/status-update',
                 'orders' => 'order/default/list',
                 'order/<action:[a-z-]+>/<id:[0-9]+>' => 'order/default/<action>',
                 'order/<action:[a-z-]+>' => 'order/default/<action>',

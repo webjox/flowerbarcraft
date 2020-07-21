@@ -19,6 +19,7 @@ $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="order-list">
     <?= DetailView::widget([
+        'id' => 'order-info',
         'model' => $model,
         'bordered' => true,
         'striped' => false,
@@ -42,7 +43,10 @@ $this->params['breadcrumbs'][] = $this->title;
                         'formOptions' => ['action' => ['update-status']],
                         'attribute' => '[0]status_id',
                         'displayValue' => (function () use ($model) {
-                            return $model->status->name ?? '-';
+                            return $model->status ? Html::tag('span', $model->status->name, [
+                                'class' => 'btn btn-status',
+                                'style' => "background: {$model->status->bgColor}"
+                            ]) : '-';
                         })(),
                         'asPopover' => true,
                         'inputType' => Editable::INPUT_DROPDOWN_LIST,

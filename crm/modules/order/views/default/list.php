@@ -25,6 +25,7 @@ $statusList = Order::getAvailableStatuses();
     <?= GridView::widget([
         'filterModel' => $searchModel,
         'dataProvider' => $dataProvider,
+        'id' => 'order-list',
         'responsiveWrap' => false,
         'panel' => [
             'heading' => '<h3 class="panel-title">' . $this->title . '</h3>',
@@ -105,17 +106,23 @@ $statusList = Order::getAvailableStatuses();
                 'filter' => Html::activeDropDownList(
                     $searchModel,
                     'status',
-                    StatusModel::find()->select(['name', 'id'])->where(['active' => true])->indexBy('id')->column(),
+                    StatusModel::find()->select(['name', 'id'])->where(['active' => true, 'show_in_list' => true])->indexBy('id')->column(),
                     ['class' => 'form-control', 'prompt' => 'Все']
                 ),
                 'headerOptions' => ['style' => 'width: 150px;'],
-                'editableOptions' => [
-                    'header' => 'статус',
-                    'formOptions' => ['action' => ['update-status']],
-                    'inputType' => Editable::INPUT_DROPDOWN_LIST,
-                    'placement' => PopoverX::ALIGN_LEFT_BOTTOM,
-                    "data" => $statusList,
-                ],
+                'editableOptions' => function ($model, $key, $index) use ($statusList) {
+                    return [
+                        'header' => 'статус',
+                        'formOptions' => ['action' => ['update-status']],
+                        'inputType' => Editable::INPUT_DROPDOWN_LIST,
+                        'placement' => PopoverX::ALIGN_LEFT_BOTTOM,
+                        "data" => $statusList,
+                        'displayValue' => $model->status ? Html::tag('span', $model->status->name, [
+                            'class' => 'btn btn-status',
+                            'style' => "background: {$model->status->bgColor}"
+                        ]) : '-',
+                    ];
+                },
             ],
             [
                 'label' => 'Сумма',

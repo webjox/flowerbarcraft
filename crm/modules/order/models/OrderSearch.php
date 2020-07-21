@@ -56,7 +56,7 @@ class OrderSearch extends Order
      */
     public function search($params)
     {
-        $query = Order::find()->with('items.offer.images', 'status');
+        $query = Order::find()->with('items.offer.images', 'status')->joinWith('status');
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
@@ -79,6 +79,7 @@ class OrderSearch extends Order
         $this->load($params);
 
         $query->where(['site_id' => Yii::$app->user->identity->site_id]);
+        $query->andWhere(['status.show_in_list' => true]);
         $query->andFilterWhere(['status_id' => $this->status]);
         $query->andFilterWhere(['>=', 'delivery_date', $this->getFromDateToFilter()]);
         $query->andFilterWhere(['<=', 'delivery_date', $this->getToDateToFilter()]);
