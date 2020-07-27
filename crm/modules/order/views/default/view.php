@@ -58,8 +58,20 @@ $this->params['breadcrumbs'][] = $this->title;
             'created_at:datetime',
             'customer',
             'recipient',
-            'customer_comment:raw',
-            'manager_comment:raw',
+            [
+                'attribute' => 'customer_comment',
+                'value' => function () use ($model) {
+                    return $model->customer_comment ? Html::tag('div', $model->customer_comment, ['style' => 'white-space: pre']) : '-';
+                },
+                'format' => 'raw',
+            ],
+            [
+                'attribute' => 'manager_comment',
+                'value' => function () use ($model) {
+                    return $model->manager_comment ? Html::tag('div', $model->manager_comment, ['style' => 'white-space: pre']) : '-';
+                },
+                'format' => 'raw',
+            ],
             'totalSumm:currency',
             'prepaySum:currency',
             'toPaySumm:currency',
