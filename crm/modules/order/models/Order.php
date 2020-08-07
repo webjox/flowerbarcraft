@@ -265,7 +265,7 @@ class Order extends OrderModel
             }
         }
 
-        if (empty($data)) {
+        if (empty($data) || empty($this->delivery_address_street)) {
             return $this->delivery_address ?: '-';
         }
 
