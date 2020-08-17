@@ -17,6 +17,7 @@ $this->title = "Заказ {$model->crm_id}";
 $this->params['breadcrumbs'][] = ['label' => 'Заказы', 'url' => ['list']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
+<p><?= Html::a('Открыть в PDF', ['download', 'id' => $model->id], ['class' => 'btn btn-success', 'target' => '_blank']) ?></p>
 <div class="order-list">
     <?= DetailView::widget([
         'id' => 'order-info',
@@ -116,6 +117,14 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'label' => 'Название',
                 'attribute' => 'name',
+                'value' => function (OrderItemModel $data) {
+                    $name = $data->name;
+                    if ($data->weight) {
+                        $name .= Html::tag('div', "Вес: {$data->weight} гр.", ['class' => 'item-property']);
+                    }
+                    return $name;
+                },
+                'format' => 'html'
             ],
             [
                 'label' => 'Стоимость',
@@ -144,6 +153,7 @@ $this->params['breadcrumbs'][] = $this->title;
             'heading' => 'Доставка',
         ],
         'attributes' => [
+            'delivery_type',
             'deliveryAddress',
             'delivery_date:date',
             'delivery_time',

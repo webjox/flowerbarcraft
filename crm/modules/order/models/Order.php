@@ -8,6 +8,7 @@ use common\components\retailcrm\RetailCrm;
 use common\components\settings\models\StatusModel;
 use Exception;
 use Yii;
+use yii\base\InvalidConfigException;
 use yii\helpers\Html;
 use yii\web\BadRequestHttpException;
 
@@ -26,6 +27,8 @@ use yii\web\BadRequestHttpException;
  * @property-read null|string $customerName
  * @property-read null|string $recipient
  * @property-read string $deliveryAddress
+ * @property-read null|string $deliveryDate
+ * @property-read int $itemsSum
  * @property-read int $prepaySum
  */
 class Order extends OrderModel
@@ -75,6 +78,7 @@ class Order extends OrderModel
             'delivery_date' => 'Дата',
             'delivery_time' => 'Время',
             'deliveryCost' => 'Стоимость',
+            'delivery_type' => 'Тип',
             'totalSumm' => 'Общая стоимость',
             'prepaySum' => 'Оплачено',
             'toPaySumm' => 'Сумма к оплате',
@@ -270,6 +274,42 @@ class Order extends OrderModel
         }
 
         return implode(', ', $data);
+    }
+
+    /**
+     * @return string|null
+     * @throws InvalidConfigException
+     */
+    public function getDeliveryDate()
+    {
+        $data = [];
+        if ($this->delivery_date) {
+            $data[] = Yii::$app->formatter->asDate($this->delivery_date, 'php:d.m.Y');
+        }
+        if ($this->delivery_time) {
+            $data[] = $this->delivery_time;
+        }
+        if (empty($data)) {
+            return null;
+        }
+        return implode(' ', $data);
+    }
+
+    /**
+     * @return int
+     */
+    public function getItemsSum()
+    {
+        $sum = 0;
+
+        $items = $this->items;
+        if (!empty($items)) {
+            foreach ($items as $item) {
+                $sum += $item->summ;
+            }
+        }
+
+        return $sum;
     }
 
     /**

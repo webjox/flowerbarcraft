@@ -54,6 +54,7 @@ class SaveHelper
             'price' => (isset($data['price']) ? (int)($data['price'] * 100) : 0),
             'external_id' => ($data['externalId'] ?? null),
             'xml_id' => ($data['xmlId'] ?? null),
+            'weight' => ($data['weight'] ?? null),
         ], false);
 
         if (!$model->save(false)) {

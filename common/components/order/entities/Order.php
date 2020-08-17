@@ -40,10 +40,13 @@ class Order
     public $delivery_address_floor;
     public $delivery_address_metro;
     public $delivery_address_notes;
+    public $delivery_type;
     public $delivery_date;
     public $delivery_time;
     public $delivery_time_ordering;
     public $delivery_cost;
+    public $initial_product_summ;
+    public $summ;
     public $total_summ;
     public $prepay_sum;
     public $to_pay_summ;
@@ -106,10 +109,13 @@ class Order
         $order->delivery_address_floor = !empty($data['deliveryAddressFloor']) ? $data['deliveryAddressFloor'] : null;
         $order->delivery_address_metro = !empty($data['deliveryAddressMetro']) ? $data['deliveryAddressMetro'] : null;
         $order->delivery_address_notes = !empty($data['deliveryAddressNotes']) ? $data['deliveryAddressNotes'] : null;
+        $order->delivery_type = !empty($data['deliveryType']) ? $data['deliveryType'] : null;
         $order->delivery_date = !empty($data['deliveryDate']) ? $data['deliveryDate'] : null;
         $order->delivery_time = !empty($data['deliveryTime']) ? $data['deliveryTime'] : null;
         $order->setDeliveryTimeOrdering($order->delivery_time);
         $order->delivery_cost = !empty($data['deliveryCost']) ? (int)($data['deliveryCost'] * 100) : 0;
+        $order->initial_product_summ = !empty($data['initialProductSumm']) ? (int)($data['initialProductSumm'] * 100) : 0;
+        $order->summ = !empty($data['summ']) ? (int)($data['summ'] * 100) : 0;
         $order->total_summ = !empty($data['totalSumm']) ? (int)($data['totalSumm'] * 100) : 0;
         $order->prepay_sum = !empty($data['prepaySum']) ? (int)($data['prepaySum'] * 100) : 0;
         $order->to_pay_summ = !empty($data['toPaySumm']) ? (int)($data['toPaySumm'] * 100) : 0;

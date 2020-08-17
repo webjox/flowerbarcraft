@@ -92,6 +92,11 @@ class CompareHelper
             return false;
         }
 
+        $weight = $offer['weight'] ?? null;
+        if ($weight != $savedOffer['weight']) {
+            return false;
+        }
+
         return true;
     }
 }

@@ -6,7 +6,13 @@ use common\models\User;
 use crm\modules\order\models\Order;
 use crm\modules\order\models\OrderSearch;
 use kartik\grid\EditableColumnAction;
+use kartik\mpdf\Pdf;
+use Mpdf\MpdfException;
+use setasign\Fpdi\PdfParser\CrossReference\CrossReferenceException;
+use setasign\Fpdi\PdfParser\PdfParserException;
+use setasign\Fpdi\PdfParser\Type\PdfTypeException;
 use Yii;
+use yii\base\InvalidConfigException;
 use yii\filters\AccessControl;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
@@ -44,7 +50,7 @@ class DefaultController extends Controller
                     ],
                     [
                         'allow' => true,
-                        'actions' => ['list', 'view'],
+                        'actions' => ['list', 'view', 'download'],
                         'roles' => [User::ROLE_FLORIST],
                     ],
                 ],
@@ -96,6 +102,37 @@ class DefaultController extends Controller
         $model = $this->find($id);
 
         return $this->render('view', ['model' => $model]);
+    }
+
+    /**
+     * @param $id
+     * @return mixed
+     * @throws ForbiddenHttpException
+     * @throws NotFoundHttpException
+     * @throws MpdfException
+     * @throws CrossReferenceException
+     * @throws PdfParserException
+     * @throws PdfTypeException
+     * @throws InvalidConfigException
+     */
+    public function actionDownload($id)
+    {
+        $model = $this->find($id);
+
+        $pdf = new Pdf([
+            'mode' => Pdf::MODE_UTF8,
+            'format' => Pdf::FORMAT_A4,
+            'orientation' => Pdf::ORIENT_PORTRAIT,
+            'destination' => Pdf::DEST_BROWSER,
+            'content' => $this->renderPartial('pdf', ['model' => $model]),
+            'cssFile' => '@crm/modules/order/views/default/pdf-asset/style.css',
+            'filename' => "Заказ {$model->number}\.pdf",
+            'methods' => [
+                'SetTitle' => "Заказ {$model->number}",
+            ]
+        ]);
+
+        return $pdf->render();
     }
 
     /**

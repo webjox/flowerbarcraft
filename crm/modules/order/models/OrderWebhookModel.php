@@ -39,10 +39,13 @@ class OrderWebhookModel extends Model
     public $delivery_address_floor;
     public $delivery_address_metro;
     public $delivery_address_notes;
+    public $delivery_type;
     public $delivery_date;
     public $delivery_time;
     public $delivery_time_ordering;
     public $delivery_cost;
+    public $initial_product_summ;
+    public $summ;
     public $total_summ;
     public $prepay_sum;
     public $to_pay_summ;
@@ -73,8 +76,8 @@ class OrderWebhookModel extends Model
                     'delivery_address_city', 'delivery_address_street', 'delivery_address_building',
                     'delivery_address_house', 'delivery_address_housing', 'delivery_address_block',
                     'delivery_address_flat', 'delivery_address_floor', 'delivery_address_metro',
-                    'delivery_address_notes', 'delivery_date', 'delivery_time', 'delivery_cost',
-                    'total_summ', 'prepay_sum', 'delivery_time_ordering',
+                    'delivery_address_notes', 'delivery_type', 'delivery_date', 'delivery_time', 'delivery_cost',
+                    'total_summ', 'prepay_sum', 'delivery_time_ordering', 'initial_product_summ', 'summ'
                 ],
                 'safe'
             ],

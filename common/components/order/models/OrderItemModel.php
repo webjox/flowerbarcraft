@@ -18,6 +18,9 @@ use yii\db\ActiveRecord;
  * @property int $offer_id [int(11)]
  * @property string $crm_offer_id [varchar(255)]
  * @property string $name [varchar(255)]
+ * @property int $initial_price [int(11)]
+ * @property int $discount_summ [int(11)]
+ * @property int $weight [int(11)]
  *
  * @property ProductOfferModel $offer
  */

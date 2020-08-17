@@ -15,6 +15,7 @@ use yii\db\ActiveRecord;
  * @property string $article [varchar(255)]
  * @property string $name [varchar(255)]
  * @property int $price [int(11)]
+ * @property int $weight [int(11)]
  * @property string $external_id [varchar(255)]
  * @property string $xml_id [varchar(255)]
  * @property int $created_at [int(11)]

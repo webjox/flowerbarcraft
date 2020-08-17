@@ -1,0 +1,56 @@
+.pdf-wrap {
+    margin-top: -20px;
+}
+p {
+    font-size: 14px;
+    margin: 5px 0;
+}
+hr {
+    margin: 5px 0;
+    height: 3px;
+    color: #000;
+}
+.client-info {
+    margin: 15px 0;
+}
+.mb-10 {
+    margin-bottom: 10px;
+}
+.mb-15 {
+    margin-bottom: 15px;
+}
+.mr-20 {
+    padding-right: 20px;
+}
+.order-detail {
+    margin-top: 40px;
+}
+.order-detail th {
+    text-align: left;
+}
+.order-detail th,
+.order-detail td {
+    width: 330px;
+}
+.order-detail td {
+    vertical-align: top;
+}
+.order-detail th {
+    padding-bottom: 10px;
+}
+.order-detail th.space,
+.order-detail td.space {
+    width: 18px !important;
+}
+.order-items {
+    margin: 20px 0;
+}
+.order-items th {
+    text-align: left;
+}
+.hr {
+    border-bottom: 2px solid #000;
+}
+.align-right {
+    text-align: right;
+}
