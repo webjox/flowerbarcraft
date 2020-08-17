@@ -27,7 +27,8 @@
         "kartik-v/yii2-detail-view": "dev-master",
         "kartik-v/yii2-grid": "dev-master",
         "kartik-v/yii2-editable": "dev-master",
-        "kartik-v/yii2-widget-colorinput": "dev-master"
+        "kartik-v/yii2-widget-colorinput": "dev-master",
+        "kartik-v/yii2-mpdf": "dev-master"
     },
     "require-dev": {
         "yiisoft/yii2-debug": "~2.1.0",
