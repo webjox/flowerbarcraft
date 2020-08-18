@@ -44,7 +44,7 @@ use yii\web\View;
     </div>
     <div class="order-items">
         <p><b>СОСТАВ ЗАКАЗА</b></p>
-        <table>
+        <table width="100%">
             <tr class="table-header">
                 <th width="18%">Артикул</th>
                 <th width="30%">Товар</th>
