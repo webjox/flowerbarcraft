@@ -10,9 +10,15 @@ use yii\db\Expression;
 /**
  * Class OrderSearch
  * @package crm\modules\order\models
+ *
+ * @property-read null|string $fromDateToFilter
+ * @property-read null|string $toDateToFilter
  */
 class OrderSearch extends Order
 {
+    public $crm_id;
+    public $recipient;
+    public $customer;
     public $date;
     public $status;
     public $from_date;
@@ -24,7 +30,7 @@ class OrderSearch extends Order
     public function rules()
     {
         return [
-            [['date', 'status', 'from_date', 'to_date'], 'safe'],
+            [['date', 'status', 'from_date', 'to_date', 'crm_id', 'recipient', 'customer'], 'safe'],
         ];
     }
 
@@ -83,6 +89,20 @@ class OrderSearch extends Order
         $query->andFilterWhere(['status_id' => $this->status]);
         $query->andFilterWhere(['>=', 'delivery_date', $this->getFromDateToFilter()]);
         $query->andFilterWhere(['<=', 'delivery_date', $this->getToDateToFilter()]);
+        $query->andFilterWhere(['crm_id' => $this->crm_id]);
+        $query->andFilterWhere([
+            'or',
+            ['like', 'recipient_name', $this->recipient],
+            ['like', 'recipient_phone', $this->recipient],
+        ]);
+        $query->andFilterWhere([
+            'or',
+            ['like', 'customer_last_name', $this->customer],
+            ['like', 'customer_first_name', $this->customer],
+            ['like', 'customer_patronymic', $this->customer],
+            ['like', 'customer_phone', $this->customer],
+            ['like', 'customer_additional_phone', $this->customer],
+        ]);
 
         return $dataProvider;
     }

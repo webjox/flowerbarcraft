@@ -95,9 +95,13 @@ $this->params['breadcrumbs'][] = $this->title;
             'heading' => '<h3 class="panel-title">Позиции</h3>',
             'before' => false,
             'after' => Html::beginTag('div', ['style' => 'text-align: right;']) .
+                Html::tag('b', 'Сумма по товарам: ' . Yii::$app->formatter->format((int)($model->initial_product_summ / 100), 'currency')) .
+                Html::tag('br') .
+                Html::tag('b', 'Сумма со скидкой: ' . Yii::$app->formatter->format((int)($model->summ / 100), 'currency')) .
+                Html::tag('br') .
                 Html::tag('b', 'Стоимость доставки: ' . Yii::$app->formatter->format($model->deliveryCost, 'currency')) .
                 Html::tag('br') .
-                Html::tag('b', 'Сумма: ' . Yii::$app->formatter->format($model->totalSumm, 'currency')) .
+                Html::tag('b', 'Итого: ' . Yii::$app->formatter->format($model->totalSumm, 'currency')) .
                 Html::endTag('div'),
             'footer' => false,
         ],
@@ -127,15 +131,31 @@ $this->params['breadcrumbs'][] = $this->title;
                 'format' => 'html'
             ],
             [
-                'label' => 'Стоимость',
+                'label' => 'Цена',
                 'value' => function (OrderItemModel $data) {
-                    return $data->price > 0 ? (int)($data->price / 100) : 0;
+                    return $data->initial_price > 0 ? (int)($data->initial_price / 100) : 0;
                 },
                 'format' => 'currency',
             ],
             [
-                'label' => 'Количество',
+                'label' => 'Кол-во',
                 'attribute' => 'quantity',
+            ],
+            [
+                'label' => 'Скидка',
+                'attribute' => 'discount_summ',
+                'value' => function (OrderItemModel $data) {
+                    return $data->discount_summ > 0 ? (int)($data->discount_summ / 100) : 0;
+                },
+                'format' => 'currency',
+            ],
+            [
+                'label' => 'Стоимость',
+                'attribute' => 'summ',
+                'value' => function (OrderItemModel $data) {
+                    return $data->summ > 0 ? (int)($data->summ / 100) : 0;
+                },
+                'format' => 'currency',
             ],
         ],
     ]) ?>
@@ -150,11 +170,11 @@ $this->params['breadcrumbs'][] = $this->title;
         'enableEditMode' => false,
         'panel' => [
             'before' => false,
-            'heading' => 'Доставка',
+            'heading' => $model->delivery_type == 'Самовывоз' ? 'Самовывоз' : 'Доставка',
         ],
         'attributes' => [
             'delivery_type',
-            'deliveryAddress',
+            'deliveryAddressList:html',
             'delivery_date:date',
             'delivery_time',
         ],

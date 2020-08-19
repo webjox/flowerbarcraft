@@ -29,6 +29,7 @@ use yii\web\BadRequestHttpException;
  * @property-read string $deliveryAddress
  * @property-read null|string $deliveryDate
  * @property-read int $itemsSum
+ * @property-read string $deliveryAddressList
  * @property-read int $prepaySum
  */
 class Order extends OrderModel
@@ -75,6 +76,7 @@ class Order extends OrderModel
             'manager_comment' => 'Комментарий оператора',
             'delivery_address' => 'Адрес',
             'deliveryAddress' => 'Адрес',
+            'deliveryAddressList' => 'Адрес',
             'delivery_date' => 'Дата',
             'delivery_time' => 'Время',
             'deliveryCost' => 'Стоимость',
@@ -274,6 +276,54 @@ class Order extends OrderModel
         }
 
         return implode(', ', $data);
+    }
+
+    /**
+     * @return string
+     */
+    public function getDeliveryAddressList()
+    {
+        $data = [];
+        $detailData = [];
+        if (!empty($this->delivery_address_city)) {
+            $data[] = $this->delivery_address_city;
+        }
+        if (!empty($this->delivery_address_street)) {
+            $data[] = $this->delivery_address_street;
+        }
+        if (!empty($this->delivery_address_building)) {
+            $detailData[] = "д. {$this->delivery_address_building}";
+        }
+        if (!empty($this->delivery_address_house)) {
+            $detailData[] = "стр. {$this->delivery_address_house}";
+        }
+        if (!empty($this->delivery_address_housing)) {
+            $detailData[] = "корп. {$this->delivery_address_housing}";
+        }
+        if (!empty($this->delivery_address_block)) {
+            $detailData[] = "под. {$this->delivery_address_block}";
+        }
+        if (!empty($this->delivery_address_flat)) {
+            $detailData[] = "кв./офис {$this->delivery_address_flat}";
+        }
+        if (!empty($this->delivery_address_floor)) {
+            $detailData[] = "эт. {$this->delivery_address_floor}";
+        }
+        if (!empty($detailData)) {
+            $data[] = implode(', ', $detailData);
+        }
+        if (!empty($this->delivery_address_metro)) {
+            $data[] = "метро {$this->delivery_address_metro}";
+        }
+        if (!empty($this->delivery_address_notes)) {
+            $data[] = "Комментарий: {$this->delivery_address_notes}";
+        }
+
+        if (empty($data) || empty($this->delivery_address_street)) {
+            return $this->delivery_address ?: '-';
+        }
+
+        return implode(',<br>', $data);
     }
 
     /**
