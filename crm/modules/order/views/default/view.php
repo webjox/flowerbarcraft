@@ -97,7 +97,7 @@ $this->params['breadcrumbs'][] = $this->title;
             'after' => Html::beginTag('div', ['style' => 'text-align: right;']) .
                 Html::tag('b', 'Сумма по товарам: ' . Yii::$app->formatter->format((int)($model->initial_product_summ / 100), 'currency')) .
                 Html::tag('br') .
-                Html::tag('b', 'Сумма со скидкой: ' . Yii::$app->formatter->format((int)($model->summ / 100), 'currency')) .
+                Html::tag('b', 'Сумма со скидкой: ' . Yii::$app->formatter->format((int)($model->summ / 100), 'currency') . ($model->summ > 0 ? (' (' . Yii::$app->formatter->format(1 - $model->summ / $model->initial_product_summ, 'percent') . ')') : '')) .
                 Html::tag('br') .
                 Html::tag('b', 'Стоимость доставки: ' . Yii::$app->formatter->format($model->deliveryCost, 'currency')) .
                 Html::tag('br') .

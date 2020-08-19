@@ -20,6 +20,17 @@ $this->title = 'Заказы';
 $this->params['breadcrumbs'][] = $this->title;
 
 $statusList = Order::getAvailableStatuses();
+/* @var $query \yii\db\ActiveQuery */
+$query = clone $dataProvider->query;
+$dataSumm = Yii::$app
+    ->db
+    ->createCommand($query->select([
+        'sum(total_summ) as total',
+        'sum(initial_product_summ) as init',
+        'sum(summ) as discount',
+        'sum(delivery_cost) as delivery'
+    ])->createCommand()->rawSql)
+    ->queryOne();
 ?>
 <div class="order-list">
     <?= GridView::widget([
@@ -31,6 +42,11 @@ $statusList = Order::getAvailableStatuses();
             'heading' => '<h3 class="panel-title">' . $this->title . '</h3>',
             'before' => false,
             'after' => false,
+            'footer' => Html::tag('div', 'Суммы по заказам в фильтре:', ['style' => 'width: 100%; text-align: right']) .
+                Html::tag('div', 'Товаров в заказах на сумму: ' . Yii::$app->formatter->asCurrency(($dataSumm['init'] ?? 0) / 100), ['style' => 'width: 100%; text-align: right']) .
+                Html::tag('div', 'Товаров в заказах с учетом скидки на сумму: ' . Yii::$app->formatter->asCurrency(($dataSumm['discount'] ?? 0) / 100), ['style' => 'width: 100%; text-align: right']) .
+                Html::tag('div', 'Сумма по доставке: ' . Yii::$app->formatter->asCurrency(($dataSumm['delivery'] ?? 0) / 100), ['style' => 'width: 100%; text-align: right']) .
+                Html::tag('div', 'Итого: ' . Yii::$app->formatter->asCurrency(($dataSumm['total'] ?? 0) / 100), ['style' => 'width: 100%; text-align: right']),
         ],
         'columns' => [
             [
