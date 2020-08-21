@@ -145,9 +145,15 @@ $this->params['breadcrumbs'][] = $this->title;
                 'label' => 'Скидка',
                 'attribute' => 'discount_summ',
                 'value' => function (OrderItemModel $data) {
-                    return $data->discount_summ > 0 ? (int)($data->discount_summ / 100) : 0;
+                    $formatter = Yii::$app->formatter;
+                    if ($data->discount_summ > 0) {
+                        $result = $formatter->format((int)($data->discount_summ / 100), 'currency');
+                        $result .= ' ';
+                        $result .= '(-' . $formatter->format($data->discount_summ / $data->initial_price, 'percent') . ')';
+                        return $result;
+                    }
+                    return $formatter->format(0, 'currency');
                 },
-                'format' => 'currency',
             ],
             [
                 'label' => 'Стоимость',
