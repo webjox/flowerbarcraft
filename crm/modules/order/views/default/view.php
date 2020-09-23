@@ -109,7 +109,7 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'label' => 'Изображение',
                 'value' => function (OrderItemModel $data) {
-                    $imgSrc = $data->offer->images[0]->image_url ?? null;
+                    $imgSrc = $data->offer->lastImage->image_url ?? null;
                     if (!$imgSrc) {
                         return null;
                     }

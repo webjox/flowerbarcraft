@@ -88,7 +88,7 @@ $dataSumm = Yii::$app
                         $img = null;
                         $offer = $item->offer;
                         if ($offer && $offer->images) {
-                            $url = $offer->images[0]->image_url;
+                            $url = $offer->lastImage->image_url;
                             $img = Html::a(Html::img($url, ['width' => 45, 'height' => 45]), $url, [
                                 'target' => '_blank',
                                 'style' => 'margin-right: 10px',

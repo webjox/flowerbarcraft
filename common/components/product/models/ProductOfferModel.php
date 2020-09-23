@@ -21,6 +21,7 @@ use yii\db\ActiveRecord;
  * @property int $created_at [int(11)]
  * @property int $updated_at [int(11)]
  *
+ * @property-read array|ActiveRecord|null|ProductOfferImageModel $lastImage
  * @property ProductOfferImageModel[] $images
  */
 class ProductOfferModel extends ActiveRecord
@@ -49,5 +50,13 @@ class ProductOfferModel extends ActiveRecord
     public function getImages()
     {
         return $this->hasMany(ProductOfferImageModel::class, ['offer_id' => 'id']);
+    }
+
+    /**
+     * @return array|ActiveRecord|null|ProductOfferImageModel
+     */
+    public function getLastImage()
+    {
+        return $this->getImages()->orderBy(['id' => SORT_DESC])->limit(1)->one();
     }
 }
