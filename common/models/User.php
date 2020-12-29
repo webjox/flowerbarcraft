@@ -1,7 +1,9 @@
 <?php
+
 namespace common\models;
 
 use common\components\site\models\SiteModel;
+use common\components\user\models\UserTgChat;
 use Yii;
 use yii\base\NotSupportedException;
 use yii\db\ActiveQuery;
@@ -27,6 +29,8 @@ use yii\web\IdentityInterface;
  * @property string $authKey
  * @property string $password write-only password
  *
+ * @property-read UserTgChat[] $userChat
+ * @property-read array $tgChats
  * @property SiteModel $site
  */
 class User extends ActiveRecord implements IdentityInterface
@@ -224,5 +228,30 @@ class User extends ActiveRecord implements IdentityInterface
     public function getSite()
     {
         return $this->hasOne(SiteModel::class, ['id' => 'site_id']);
+    }
+
+    /**
+     * @return ActiveQuery
+     */
+    public function getUserChat()
+    {
+        return $this->hasMany(UserTgChat::class, ['user_id' => 'id']);
+    }
+
+    /**
+     * @return array
+     */
+    public function getTgChats()
+    {
+        $chats = [];
+        $tgChats = $this->userChat;
+        if (!empty($tgChats)) {
+            foreach ($tgChats as $tgChat) {
+                if (!empty($tgChat->chat_id) && !in_array($tgChat->chat_id, $chats)) {
+                    $chats[] = $tgChat->chat_id;
+                }
+            }
+        }
+        return $chats;
     }
 }

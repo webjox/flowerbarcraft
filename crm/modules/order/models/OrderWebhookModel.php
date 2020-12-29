@@ -3,7 +3,12 @@
 namespace crm\modules\order\models;
 
 use common\components\order\models\OrderModel;
+use common\components\site\models\SiteModel;
+use common\components\tg\TgBot;
+use Exception;
+use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
 use Throwable;
+use Yii;
 use yii\base\Model;
 use yii\db\StaleObjectException;
 
@@ -141,11 +146,48 @@ class OrderWebhookModel extends Model
     public function save()
     {
         $orderModel = OrderModel::findOne(['crm_id' => $this->crm_id]);
+        $oldSiteIsDenial = $orderModel->site->is_denial ?? false;
+        $isNewRecord = false;
+        $siteModel = SiteModel::findOne(['id' => $this->site_id]);
         if (!$orderModel) {
-            $orderModel = new OrderModel();
+            $isNewRecord = true;
+            $isAccepted = true;
+            if ($siteModel && ($siteModel->is_main || $siteModel->is_denial || $siteModel->hasParent())) {
+                $isAccepted = false;
+            }
+            $orderModel = new OrderModel([
+                'site_received_at' => time(),
+                'is_accepted' => $isAccepted,
+                'token' => Yii::$app->security->generateRandomString(15),
+            ]);
         }
+
         $orderModel->setAttributes($this->attributes, false);
         $isSave = $orderModel->save(false);
+
+        // если заказ назначен напрямую в обход буферного, то по другим магазинам буферного делаем отказ
+        if ($isSave && !empty($siteModel->hasParent()) && ($isNewRecord || $oldSiteIsDenial)) {
+            $denialData = [];
+            $denialTime = time();
+            $siteIds = SiteModel::find()->select(['id'])->where(['parent_id' => $siteModel->parent_id])->andWhere(['!=', 'id', $siteModel->id])->column();
+            if (!empty($siteIds)) {
+                foreach ($siteIds as $siteId) {
+                    $denialData[] = [
+                        'order_id' => $orderModel->id,
+                        'site_id' => $siteId,
+                        'created_at' => $denialTime,
+                        'updated_at' => $denialTime,
+                    ];
+                }
+            }
+            if (!empty($denialData)) {
+                Yii::$app
+                    ->db
+                    ->createCommand()
+                    ->batchInsert('order_site_denial', ['order_id', 'site_id', 'created_at', 'updated_at'], $denialData)
+                    ->execute();
+            }
+        }
 
         //items
         if ($isSave && !empty($this->items) && is_array($this->items)) {
@@ -172,6 +214,9 @@ class OrderWebhookModel extends Model
             $this->removeMissingItems($orderModel);
             $this->removeMissingPayments($orderModel);
             $this->removeMissingFiles($orderModel);
+            if ($siteModel && !$siteModel->is_main && !$siteModel->is_denial && ($isNewRecord || $oldSiteIsDenial)) {
+                $this->sendTgNotification($orderModel, $siteModel);
+            }
         }
 
         return $isSave;
@@ -250,5 +295,56 @@ class OrderWebhookModel extends Model
                 }
             }
         }
+    }
+
+    /**
+     * @param OrderModel $order
+     * @param SiteModel $site
+     */
+    private function sendTgNotification($order, $site)
+    {
+        try {
+            $bot = TgBot::instance();
+            $chats = $site->tgChats;
+            if (empty($chats)) {
+                return;
+            }
+            if ($site->hasParent()) {
+                $keyboard = new InlineKeyboardMarkup(
+                    [
+                        [
+                            [
+                                'text' => 'Посмотреть',
+                                'url' => Yii::$app->params['siteUrl'] . '/order/view/' . $order->id,
+                            ]
+                        ],
+                        [
+                            [
+                                'text' => 'Принять',
+                                'callback_data' => json_encode(['id' => $order->id, 'action' => 'accept', 'token' => $order->token])
+                            ],
+                            [
+                                'text' => 'Отклонить',
+                                'callback_data' => json_encode(['id' => $order->id, 'action' => 'reject', 'token' => $order->token])
+                            ]
+                        ],
+                    ]
+                );
+            } else {
+                $keyboard = new InlineKeyboardMarkup(
+                    [
+                        [
+                            [
+                                'text' => 'Посмотреть',
+                                'url' => Yii::$app->params['siteUrl'] . '/order/view/' . $order->id,
+                            ]
+                        ],
+                    ]
+                );
+            }
+            foreach ($chats as $chat) {
+                $bot->sendMessage($chat, "Получен новый заказ №{$order->crm_id}", null, false, null, $keyboard);
+            }
+        } catch (Exception $e) {}
     }
 }

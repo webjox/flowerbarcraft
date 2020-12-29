@@ -79,8 +79,9 @@ class Order
         $order->crm_id = !empty($data['id']) ? $data['id'] : null;
         $order->number = !empty($data['number']) ? $data['number'] : null;
         $order->external_id = !empty($data['externalId']) ? $data['externalId'] : null;
-        if (!empty($data['siteCode'])) {
-            $siteId = SiteModel::find()->select('id')->where(['code' => $data['siteCode']])->scalar();
+        $siteCode = !empty($data['setSite']) ? $data['setSite'] : (!empty($data['siteCode']) ? $data['siteCode'] : null);
+        if ($siteCode) {
+            $siteId = SiteModel::find()->select('id')->where(['code' => $siteCode])->scalar();
             $order->site_id = $siteId != false ? $siteId : null;
         }
         if (!empty($data['statusCode'])) {

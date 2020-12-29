@@ -39,12 +39,14 @@ AppAsset::register($this);
     ]);
     if (Yii::$app->user->can(User::ROLE_ADMIN)) {
         $menuItems = [
+            ['label' => 'Магазины', 'url' => ['/sites/default/list']],
             ['label' => 'Пользователи', 'url' => ['/user/default/list']],
             ['label' => 'Настройки', 'url' => ['/settings/default/index']],
         ];
     } elseif (Yii::$app->user->can(User::ROLE_FLORIST)) {
         $menuItems = [
             ['label' => 'Заказы', 'url' => ['/order/default/list']],
+            ['label' => 'Настройка оповещений', 'url' => ['/notifications/default/index']],
         ];
     } else {
         $menuItems = [];

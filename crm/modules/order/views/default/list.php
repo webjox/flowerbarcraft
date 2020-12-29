@@ -38,6 +38,12 @@ $dataSumm = Yii::$app
         'dataProvider' => $dataProvider,
         'id' => 'order-list',
         'responsiveWrap' => false,
+        'rowOptions' => function ($model, $key, $index, $grid) {
+            if (!$model->is_accepted) {
+                return ['style' => 'color: #a94442; background-color: #f2dede;'];
+            }
+            return null;
+        },
         'panel' => [
             'heading' => '<h3 class="panel-title">' . $this->title . '</h3>',
             'before' => false,
@@ -115,7 +121,12 @@ $dataSumm = Yii::$app
             [
                 'class' => EditableColumn::class,
                 'attribute' => 'status_id',
-                'readonly' => false,
+                'readonly' => function ($model) {
+                    if (!$model->is_accepted) {
+                        return true;
+                    }
+                    return false;
+                },
                 'value' => function ($model) {
                     return $model->status->name ?? '-';
                 },
@@ -151,7 +162,23 @@ $dataSumm = Yii::$app
             'crm_id',
             [
                 'class' => 'yii\grid\ActionColumn',
-                'template' => '{view}'
+                'template' => '{view}<br>{accept}<br>{reject}',
+                'buttons' => [
+                    'accept' => function ($url, $model) {
+                        return Html::a(Html::tag('span', '', ['class' => 'glyphicon glyphicon-ok']), $url, ['title' => 'Принять']);
+                    },
+                    'reject' => function ($url, $model) {
+                        return Html::a(Html::tag('span', '', ['class' => 'glyphicon glyphicon-ban-circle']), $url, ['title' => 'Отказ']);
+                    }
+                ],
+                'visibleButtons' => [
+                    'accept' => function ($model, $key, $index) {
+                        return !$model->is_accepted;
+                    },
+                    'reject' => function ($model, $key, $index) {
+                        return !$model->is_accepted;
+                    },
+                ],
             ],
         ],
     ]) ?>

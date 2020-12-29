@@ -19,6 +19,7 @@ use yii\helpers\Html;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
+use yii\web\Response;
 
 /**
  * Class DefaultController
@@ -50,7 +51,7 @@ class DefaultController extends Controller
                     ],
                     [
                         'allow' => true,
-                        'actions' => ['list', 'view', 'download'],
+                        'actions' => ['list', 'view', 'download', 'accept', 'reject'],
                         'roles' => [User::ROLE_FLORIST],
                     ],
                 ],
@@ -133,6 +134,53 @@ class DefaultController extends Controller
         ]);
 
         return $pdf->render();
+    }
+
+    /**
+     * @param $id
+     * @return Response
+     * @throws NotFoundHttpException
+     */
+    public function actionAccept($id)
+    {
+        try {
+            $model = $this->find($id);
+        } catch (ForbiddenHttpException $e) {
+            Yii::$app->session->setFlash('error', 'Заказ недоступен. Возможно истекло время на принятие заказа и он перешел другому магазину.');
+            return $this->redirect(['list']);
+        }
+
+        if ($model->accept()) {
+            Yii::$app->session->setFlash('success', 'Заказ принят в работу.');
+            return $this->redirect(['view', 'id' => $model->id]);
+        }
+
+        Yii::$app->session->setFlash('error', 'Что-то пошло не так, попробуйте ещё раз.');
+        return $this->redirect(['list']);
+    }
+
+    /**
+     * @param $id
+     * @return Response
+     * @throws InvalidConfigException
+     * @throws NotFoundHttpException
+     */
+    public function actionReject($id)
+    {
+        try {
+            $model = $this->find($id);
+        } catch (ForbiddenHttpException $e) {
+            Yii::$app->session->setFlash('error', 'Заказ недоступен. Возможно истекло время на отказ от заказа и он перешел другому магазину.');
+            return $this->redirect(['list']);
+        }
+
+        if ($model->reassign()) {
+            Yii::$app->session->setFlash('success', 'Заказ перенаправлен другому магазину.');
+            return $this->redirect(['list']);
+        }
+
+        Yii::$app->session->setFlash('error', 'Что-то пошло не так, попробуйте ещё раз.');
+        return $this->redirect(['list']);
     }
 
     /**

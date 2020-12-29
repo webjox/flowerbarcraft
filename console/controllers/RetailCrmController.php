@@ -25,6 +25,7 @@ class RetailCrmController extends Controller
 {
     /**
      * Синхронизация магазинов
+     * @return int
      */
     public function actionSites()
     {
@@ -79,10 +80,24 @@ class RetailCrmController extends Controller
 
             foreach ($siteCodeListActive as $code => $name) {
                 if (!in_array($code, $retailCrmSiteCodeList)) {
+                    $disabledSiteId = SiteModel::find()->select('id')->where(['code' => $code])->scalar();
                     Yii::$app->db->createCommand()->update('site', [
+                        'is_main' => false,
+                        'is_denial' => false,
+                        'timezone' => null,
+                        'probability' => null,
+                        'parent_id' => null,
                         'active' => false,
                         'updated_at' => time()
                     ], 'code = :code', [':code' => $code])->execute();
+                    if ($disabledSiteId) {
+                        Yii::$app->db->createCommand()->update('site', [
+                            'timezone' => null,
+                            'probability' => null,
+                            'parent_id' => null,
+                            'updated_at' => time()
+                        ], 'parent_id = :id', [':id' => $disabledSiteId])->execute();
+                    }
                     $updateCount++;
                 }
             }

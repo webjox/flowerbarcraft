@@ -17,7 +17,14 @@ $this->title = "Заказ {$model->crm_id}";
 $this->params['breadcrumbs'][] = ['label' => 'Заказы', 'url' => ['list']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
-<p><?= Html::a('Открыть в PDF', ['download', 'id' => $model->id], ['class' => 'btn btn-success', 'target' => '_blank']) ?></p>
+<?php if ($model->is_accepted): ?>
+    <p><?= Html::a('Открыть в PDF', ['download', 'id' => $model->id], ['class' => 'btn btn-success', 'target' => '_blank']) ?></p>
+<?php else: ?>
+    <p>
+        <?= Html::a('Принять', ['accept', 'id' => $model->id], ['class' => 'btn btn-success']) ?>
+        <?= Html::a('Отказаться', ['reject', 'id' => $model->id], ['class' => 'btn btn-danger']) ?>
+    </p>
+<?php endif; ?>
 <div class="order-list">
     <?= DetailView::widget([
         'id' => 'order-info',
@@ -38,6 +45,9 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'attribute' => 'status_id',
                 'value' => function () use ($model) {
+                    if (!$model->is_accepted) {
+                        return $model->status->name;
+                    }
                     return Editable::widget([
                         'model' => $model,
                         'additionalData' => ['editableIndex' => 0, 'editableKey' => $model->id],

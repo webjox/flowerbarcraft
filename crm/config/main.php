@@ -68,6 +68,7 @@ return [
             'rules' => [
                 '/' => 'site/index',
                 'login' => 'site/login',
+                'sites' => 'sites/default/list',
                 'users' => 'user/default/list',
                 'user/<action:[a-z-]+>/<id:[0-9]+>' => 'user/default/<action>',
                 'user/<action:[a-z-]+>' => 'user/default/<action>',
@@ -76,7 +77,9 @@ return [
                 'orders' => 'order/default/list',
                 'order/<action:[a-z-]+>/<id:[0-9]+>' => 'order/default/<action>',
                 'order/<action:[a-z-]+>' => 'order/default/<action>',
+                'notifications' => 'notifications/default/index',
                 'webhook/<action:[a-z-]+>' => 'webhook/<action>',
+                'tg/callback' => 'tg/callback',
             ],
         ],
     ],
@@ -105,8 +108,32 @@ return [
                 ],
             ],
         ],
+        'sites' => [
+            'class' => 'crm\modules\site\SiteModule',
+            'as access' => [
+                'class' => 'yii\filters\AccessControl',
+                'rules' => [
+                    [
+                        'allow' => true,
+                        'roles' => [User::ROLE_ADMIN],
+                    ],
+                ],
+            ],
+        ],
         'order' => [
             'class' => 'crm\modules\order\OrderModule',
+            'as access' => [
+                'class' => 'yii\filters\AccessControl',
+                'rules' => [
+                    [
+                        'allow' => true,
+                        'roles' => [User::ROLE_FLORIST],
+                    ],
+                ],
+            ],
+        ],
+        'notifications' => [
+            'class' => 'crm\modules\notifications\NotificationsModule',
             'as access' => [
                 'class' => 'yii\filters\AccessControl',
                 'rules' => [
@@ -125,7 +152,7 @@ return [
         'class' => 'yii\filters\AccessControl',
         'rules' => [
             [
-                'actions' => ['login', 'error', 'order-changed'],
+                'actions' => ['login', 'error', 'order-changed', 'callback'],
                 'allow' => true,
             ],
             [
