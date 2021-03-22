@@ -4,6 +4,7 @@ namespace crm\modules\user\controllers;
 
 use common\components\user\models\AdminManage;
 use common\components\user\models\FloristManage;
+use common\components\user\models\UserDelivery;
 use common\components\user\models\UserManage;
 use crm\modules\user\models\UserSearch;
 use Throwable;
@@ -90,18 +91,53 @@ class DefaultController extends Controller
      * @return string|Response
      * @throws NotFoundHttpException
      */
-    public function actionUpdate($id)
+    public function actionUpdateAdmin($id)
     {
-        $model = $this->findModel($id);
+        $model = AdminManage::find()->where(['group' => AdminManage::GROUP_ADMIN, 'id' => $id])->one();
+
+        if (!$model) {
+            throw new NotFoundHttpException('Администратор не найден.');
+        }
+
         $model->scenario = UserManage::SCENARIO_UPDATE;
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            Yii::$app->session->setFlash('success', 'Пользователь успешно обновлен');
+            Yii::$app->session->setFlash('success', 'Администратор успешно обновлен');
             return $this->redirect(['list']);
         }
 
         return $this->render('update', [
             'model' => $model,
+        ]);
+    }
+
+    /**
+     * @param $id
+     * @return string|Response
+     * @throws NotFoundHttpException
+     */
+    public function actionUpdateFlorist($id)
+    {
+        /* @var $model FloristManage */
+        $model = FloristManage::find()->where(['group' => FloristManage::GROUP_FLORIST, 'id' => $id])->one();
+
+        if (!$model) {
+            throw new NotFoundHttpException('Флорист не найден.');
+        }
+
+        $model->scenario = UserManage::SCENARIO_UPDATE;
+        $delivery = $model->delivery ?: new UserDelivery(['user_id' => $model->id]);
+        $request = Yii::$app->request;
+        if ($model->load($request->post()) && $delivery->load($request->post())) {
+            if ($model->save() && $delivery->save()) {
+                Yii::$app->session->setFlash('success', 'Флорист успешно обновлен');
+                return $this->redirect(['list']);
+            }
+        }
+
+        return $this->render('update', [
+            'model' => $model,
+            'delivery' => $delivery,
         ]);
     }
 
@@ -114,7 +150,11 @@ class DefaultController extends Controller
      */
     public function actionDelete($id)
     {
-        $model = $this->findModel($id);
+        $model = UserManage::findOne(['id' => $id]);
+
+        if (!$model) {
+            throw new NotFoundHttpException('Пользователь не найден.');
+        }
 
         if ($model->username == 'florist-admin') {
             throw new ForbiddenHttpException('Невозможно удалить администратора с логином florist-admin');
@@ -125,25 +165,5 @@ class DefaultController extends Controller
         }
 
         return $this->redirect(['list']);
-    }
-
-    /**
-     * @param $id
-     * @return AdminManage|FloristManage
-     * @throws NotFoundHttpException
-     */
-    protected function findModel($id)
-    {
-        $model = AdminManage::find()->where(['group' => AdminManage::GROUP_ADMIN, 'id' => $id])->one();
-
-        if (!$model) {
-            $model = FloristManage::find()->where(['group' => FloristManage::GROUP_FLORIST, 'id' => $id])->one();
-        }
-
-        if (!$model) {
-            throw new NotFoundHttpException('Пользователь не найден.');
-        }
-
-        return $model;
     }
 }

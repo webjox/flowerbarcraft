@@ -1,7 +1,9 @@
 <?php
 
+use common\components\order\models\OrderDeliveryModel;
 use common\components\order\models\OrderItemModel;
 use common\components\order\models\OrderPaymentModel;
+use common\components\yandexGoDelivery\YaDeliveryClient;
 use crm\modules\order\models\Order;
 use kartik\detail\DetailView;
 use kartik\editable\Editable;
@@ -9,13 +11,17 @@ use kartik\grid\GridView;
 use yii\data\ArrayDataProvider;
 use yii\helpers\Html;
 use yii\web\View;
+use yii\widgets\ActiveForm;
+use yii\widgets\MaskedInput;
 
 /* @var $this View */
 /* @var $model Order */
+/* @var $yaDeliveryModel null|OrderDeliveryModel */
 
 $this->title = "Заказ {$model->crm_id}";
 $this->params['breadcrumbs'][] = ['label' => 'Заказы', 'url' => ['list']];
 $this->params['breadcrumbs'][] = $this->title;
+$delivery = Yii::$app->user->identity->delivery ?? null;
 ?>
 <?php if ($model->is_accepted): ?>
     <p><?= Html::a('Открыть в PDF', ['download', 'id' => $model->id], ['class' => 'btn btn-success', 'target' => '_blank']) ?></p>
@@ -240,4 +246,221 @@ $this->params['breadcrumbs'][] = $this->title;
             ],
         ],
     ]) ?>
+
+    <?php if ($model->is_accepted && $yaDeliveryModel): ?>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Яндекс.Доставка</h3>
+            </div>
+            <div class="panel-body">
+                <?php $form = ActiveForm::begin([
+                    'id' => 'ya-delivery-form',
+                ]); ?>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">Отправитель</div>
+                            <div class="panel-body">
+                                <?= $form->field($yaDeliveryModel, 'source_city')->textInput(['disabled' => !empty($yaDeliveryModel->external_id)]) ?>
+                                <?= $form->field($yaDeliveryModel, 'source_street')->textInput(['disabled' => !empty($yaDeliveryModel->external_id)]) ?>
+                                <?= $form->field($yaDeliveryModel, 'source_building')->textInput(['disabled' => !empty($yaDeliveryModel->external_id)]) ?>
+                                <?= $form->field($yaDeliveryModel, 'source_floor')->textInput(['disabled' => !empty($yaDeliveryModel->external_id)]) ?>
+                                <?= $form->field($yaDeliveryModel, 'source_flat')->textInput(['disabled' => !empty($yaDeliveryModel->external_id)]) ?>
+                                <?= $form->field($yaDeliveryModel, 'source_sender_name')->textInput(['disabled' => !empty($yaDeliveryModel->external_id)]) ?>
+                                <?= $form->field($yaDeliveryModel, 'source_sender_phone')->widget(MaskedInput::class, ['mask' => '+79999999999', 'options' => ['disabled' => !empty($yaDeliveryModel->external_id)]]) ?>
+                                <?= $form->field($yaDeliveryModel, 'source_comment')->textarea(['rows' => 5, 'disabled' => !empty($yaDeliveryModel->external_id)]) ?>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">Получатель</div>
+                            <div class="panel-body">
+                                <?= $form->field($yaDeliveryModel, 'destination_city')->textInput(['disabled' => !empty($yaDeliveryModel->external_id)]) ?>
+                                <?= $form->field($yaDeliveryModel, 'destination_street')->textInput(['disabled' => !empty($yaDeliveryModel->external_id)]) ?>
+                                <?= $form->field($yaDeliveryModel, 'destination_building')->textInput(['disabled' => !empty($yaDeliveryModel->external_id)]) ?>
+                                <?= $form->field($yaDeliveryModel, 'destination_floor')->textInput(['disabled' => !empty($yaDeliveryModel->external_id)]) ?>
+                                <?= $form->field($yaDeliveryModel, 'destination_flat')->textInput(['disabled' => !empty($yaDeliveryModel->external_id)]) ?>
+                                <?= $form->field($yaDeliveryModel, 'destination_recipient_name')->textInput(['disabled' => !empty($yaDeliveryModel->external_id)]) ?>
+                                <?= $form->field($yaDeliveryModel, 'destination_recipient_phone')->widget(MaskedInput::class, ['mask' => '+79999999999', 'options' => ['disabled' => !empty($yaDeliveryModel->external_id)]]) ?>
+                                <?= $form->field($yaDeliveryModel, 'destination_comment')->textarea(['rows' => 5, 'disabled' => !empty($yaDeliveryModel->external_id)]) ?>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <?= $form->field($yaDeliveryModel, 'comment')->textarea(['rows' => 5, 'disabled' => !empty($yaDeliveryModel->external_id)]) ?>
+                <div class="panel panel-default <?= !empty($yaDeliveryModel->external_id) && $model->status->code != 'complete'  ? ($yaDeliveryModel->accepted ? 'accepted-status-updating' : 'status-updating') : '' ?>" id="delivery-status-block" <?= empty($yaDeliveryModel->external_id) ? 'style="display: none"' : '' ?>>
+                    <div class="panel-heading">Статус заявки</div>
+                    <div class="panel-body">
+                        <p>Статус: <span id="delivery-status"><?= !empty($yaDeliveryModel->status) ? YaDeliveryClient::getStatusInfo($yaDeliveryModel->status) : '' ?></span></p>
+                        <p id="delivery-cost-block" <?= empty($yaDeliveryModel->price) ? 'style="display:none"' : '' ?>>Стоимость: <span id="delivery-cost"><?= !empty($yaDeliveryModel->price) ? ($yaDeliveryModel->price / 100) : '' ?></span> руб</p>
+                    </div>
+                </div>
+                <?php if (empty($yaDeliveryModel->external_id)): ?>
+                    <button class="btn btn-success" id="create-delivery">Отправить заявку на расчет</button>
+                <?php endif; ?>
+                <button class="btn btn-success" id="accept-delivery" style="display: <?= $yaDeliveryModel->status == 'ready_for_approval' && !$yaDeliveryModel->accepted ? 'inline-block' : 'none' ?>">Подтвердить</button>
+                <?= Html::a('Отменить', ['cancel-delivery', 'id' => $model->id], ['class' => 'btn btn-danger', 'id' => 'cancel-delivery', 'style' => ('display:' . (!empty($yaDeliveryModel->external_id && !in_array($yaDeliveryModel->status, ['delivered_finish', 'returned_finish'])) ? 'inline-block' : 'none'))]) ?>
+                <?php ActiveForm::end(); ?>
+            </div>
+        </div>
+    <?php endif; ?>
 </div>
+<?php $this->registerJs('
+function getStatusInfo($status) {
+    if ($status === "new") {
+        return "Заявка создана";
+    } else if ($status === "estimating") {
+        return "Идет процесс оценки заявки";
+    } else if ($status === "estimating_failed") {
+        return "Не удалось оценить заявку";
+    } else if ($status === "ready_for_approval") {
+        return "Заявка успешно оценена и ожидает подтверждения";
+    } else if ($status === "accepted") {
+        return "Заявка подтверждена";
+    } else if ($status === "performer_lookup") {
+        return "Заявка взята в обработку";
+    } else if ($status === "performer_draft") {
+        return "Идет поиск водителя";
+    } else if ($status === "performer_found") {
+        return "Водитель найден и едет за заказом";
+    } else if ($status === "performer_not_found") {
+        return "Не удалось найти водителя. Можно попробовать снова через некоторое время";
+    } else if ($status === "pickup_arrived") {
+        return "Водитель приехал за заказом";
+    } else if ($status === "ready_for_pickup_confirmation") {
+        return "Водитель ждет, когда отправитель назовет ему код подтверждения";
+    } else if ($status === "pickuped") {
+        return "Водитель успешно забрал заказ";
+    } else if ($status === "pay_waiting") {
+        return "Заказ ожидает оплаты";
+    } else if ($status === "delivery_arrived") {
+        return "Водитель приехал к получателю";
+    } else if ($status === "ready_for_delivery_confirmation") {
+        return "Водитель ждет, когда получатель назовет ему код подтверждения";
+    } else if ($status === "delivered") {
+        return "Водитель успешно доставил заказ";
+    } else if ($status === "delivered_finish") {
+        return "Заказ завершен";
+    } else if ($status === "returning") {
+        return "Водителю пришлось вернуть заказ и он едет в точку возврата";
+    } else if ($status === "return_arrived") {
+        return "Водитель приехал в точку возврата";
+    } else if ($status === "ready_for_return_confirmation") {
+        return "Водитель в точке возврата ожидает, когда ему назовут код подтверждения";
+    } else if ($status === "returned") {
+        return "Водитель успешно вернул заказ";
+    } else if ($status === "returned_finish") {
+        return "Возврат заказа";
+    } else if ($status === "cancelled") {
+        return "Заказ был отменен клиентом бесплатно";
+    } else if ($status === "cancelled_with_payment") {
+        return "Заказ был отменен клиентом платно (водитель уже приехал)";
+    } else if ($status === "cancelled_by_taxi") {
+        return "Водитель отменил заказ (до получения заказа)";
+    } else if ($status === "cancelled_with_items_on_hands") {
+        return "Клиент платно отменил заявку без необходимости возврата заказа";
+    } else if ($status === "failed") {
+        return "При выполнение заказа произошла ошибка, дальнейшее выполнение невозможно";
+    }
+    return null;
+}
+
+function updateDeliveryStatus() {
+    $.ajax({
+        url: "/order/get-delivery-status/' . $model->id . '",
+        type: "POST",
+        success: function(res) {
+            console.log(res);
+            if (res.success == true) {
+                $("#delivery-status").html(getStatusInfo(res.message.status));
+                if (res.message.status == "ready_for_approval") {
+                    $("#accept-delivery").show();
+                }
+                if (res.message.price != null) {
+                    $("#delivery-cost").html(Math.floor(res.message.price * 100) / 100 );
+                    $("#delivery-cost-block").show();
+                }
+
+                if (res.message.status == "delivered_finish" || res.message.status == "returned_finish" || res.message.status == "cancelled" || res.message.status == "cancelled_with_payment" || res.message.status == "cancelled_by_taxi" || res.message.status == "cancelled_with_items_on_hands" || res.message.status == "failed") {
+                    clearTimeout(timerId);
+                }
+            } else {
+                alert(res.message.message);
+                alert("Что-то пошло не так. Попробуйте обновить страницу и отправить новый запрос.");
+            }
+        },
+        error: function() {
+            alert("Что-то пошло не так. Попробуйте обновить страницу и отправить новый запрос.");
+        }
+    });
+}
+
+var timerId = null;
+if ($("#delivery-status-block").hasClass("status-updating")) {
+    if (timerId != null) {
+        clearTimeout(timerId);
+    }
+    timerId = setInterval(updateDeliveryStatus, 5000);
+}
+if ($("#delivery-status-block").hasClass("accepted-status-updating")) {
+    if (timerId != null) {
+        clearTimeout(timerId);
+    }
+    timerId = setInterval(updateDeliveryStatus, 60000);
+}
+
+$("#accept-delivery").on("click", function (e) {
+    e.preventDefault();
+    $.ajax({
+        url: "/order/accept-delivery/' . $model->id . '",
+        type: "POST",
+        success: function(res) {
+            if (res.success == true) {
+                $("#accept-delivery").hide();
+                $("#delivery-status").html(getStatusInfo(res.status));
+                if (timerId != null) {
+                    clearTimeout(timerId);
+                }
+                timerId = setInterval(updateDeliveryStatus, 60000);
+            } else {
+                alert(res.message);
+                alert("Что-то пошло не так. Попробуйте обновить страницу и отправить новый запрос.");
+            }
+        },
+        error: function() {
+            alert("Что-то пошло не так. Попробуйте обновить страницу и отправить новый запрос.");
+        }
+    });
+});
+
+$("#ya-delivery-form").on("beforeSubmit", function() {
+    var data = $(this).serialize();
+    $.ajax({
+        url: "/order/create-delivery/' . $model->id . '",
+        type: "POST",
+        data: data,
+        success: function(res) {
+            if (res.success == true) {
+                $("#create-delivery").hide();
+                $("#ya-delivery-form input").attr("disabled", true);
+                $("#ya-delivery-form textarea").attr("disabled", true);
+                $("#delivery-status").html(getStatusInfo(res.message.status));
+                $("#delivery-status-block").show();
+                $("#cancel-delivery").show();
+                if (timerId != null) {
+                    clearTimeout(timerId);
+                }
+                timerId = setInterval(updateDeliveryStatus, 5000);
+            } else {
+                alert(res.message.message);
+                alert("Что-то пошло не так. Попробуйте обновить страницу и отправить новый запрос.");
+            }
+        },
+        error: function() {
+            alert("Что-то пошло не так. Попробуйте обновить страницу и отправить новый запрос.");
+        }
+    });
+    return false;
+});
+');

@@ -6,6 +6,7 @@ use crm\modules\user\models\UserSearch;
 use yii\data\ActiveDataProvider;
 use yii\grid\GridView;
 use yii\helpers\Html;
+use yii\helpers\Url;
 use yii\web\View;
 
 /* @var $this View */
@@ -57,7 +58,17 @@ $this->params['breadcrumbs'][] = $this->title;
             ],
             [
                 'class' => 'yii\grid\ActionColumn',
-                'template' => '{update} {delete}'
+                'template' => '{update} {delete}',
+                'urlCreator' => function ($action, $model, $key, $index) {
+                    if ($action == 'update') {
+                        if ($model->group == User::GROUP_ADMIN) {
+                            return Url::to(['update-admin', 'id' => $key]);
+                        } elseif ($model->group == User::GROUP_FLORIST) {
+                            return Url::to(['update-florist', 'id' => $key]);
+                        }
+                    }
+                    return Url::to([$action, 'id' => $key]);
+                },
             ],
         ],
     ]) ?>

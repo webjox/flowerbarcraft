@@ -3,6 +3,7 @@
 namespace common\models;
 
 use common\components\site\models\SiteModel;
+use common\components\user\models\UserDelivery;
 use common\components\user\models\UserTgChat;
 use Yii;
 use yii\base\NotSupportedException;
@@ -31,6 +32,7 @@ use yii\web\IdentityInterface;
  *
  * @property-read UserTgChat[] $userChat
  * @property-read array $tgChats
+ * @property-read UserDelivery $delivery
  * @property SiteModel $site
  */
 class User extends ActiveRecord implements IdentityInterface
@@ -228,6 +230,14 @@ class User extends ActiveRecord implements IdentityInterface
     public function getSite()
     {
         return $this->hasOne(SiteModel::class, ['id' => 'site_id']);
+    }
+
+    /**
+     * @return ActiveQuery
+     */
+    public function getDelivery()
+    {
+        return $this->hasOne(UserDelivery::class, ['user_id' => 'id']);
     }
 
     /**

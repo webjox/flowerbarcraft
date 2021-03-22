@@ -147,3 +147,9 @@ a.desc:after {
     font-size: 12px;
     color: #999;
 }
+#ya-delivery-form .has-success .control-label {
+    color: #333333;
+}
+#ya-delivery-form .has-success .form-control {
+    border-color: #ccc;
+}

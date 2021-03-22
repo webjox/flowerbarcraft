@@ -64,6 +64,7 @@ use yii\db\ActiveRecord;
  * @property OrderFileModel[] $files
  * @property OrderPaymentModel[] $payments
  * @property StatusModel $status
+ * @property-read OrderDeliveryModel $yaDelivery
  * @property SiteModel $site
  */
 class OrderModel extends ActiveRecord
@@ -123,6 +124,14 @@ class OrderModel extends ActiveRecord
     public function getSite()
     {
         return $this->hasOne(SiteModel::class, ['id' => 'site_id']);
+    }
+
+    /**
+     * @return ActiveQuery
+     */
+    public function getYaDelivery()
+    {
+        return $this->hasOne(OrderDeliveryModel::class, ['order_id' => 'id']);
     }
 
     /**

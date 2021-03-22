@@ -29,7 +29,9 @@
         "kartik-v/yii2-editable": "dev-master",
         "kartik-v/yii2-widget-colorinput": "dev-master",
         "kartik-v/yii2-mpdf": "dev-master",
-        "telegram-bot/api": "^2.3"
+        "telegram-bot/api": "^2.3",
+        "yiisoft/yii2-httpclient": "^2.0",
+        "hflabs/dadata": "^20.12"
     },
     "require-dev": {
         "yiisoft/yii2-debug": "~2.1.0",
