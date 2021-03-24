@@ -302,8 +302,14 @@ class OrderDeliveryModel extends ActiveRecord
                 }
                 $isChanged = true;
             }
-            if (!empty($info['content']['pricing']['offer']['price']) && $this->price != $info['content']['pricing']['offer']['price']) {
+
+            $price = null;
+            if (!empty($info['content']['pricing']['final_price'])) {
+                $price = (int)($info['content']['pricing']['final_price'] * 100);
+            } elseif (!empty($info['content']['pricing']['offer']['price'])) {
                 $price = (int)($info['content']['pricing']['offer']['price'] * 100);
+            }
+            if ($price && $this->price != $price) {
                 $this->price = $price;
                 $isChanged = true;
             }

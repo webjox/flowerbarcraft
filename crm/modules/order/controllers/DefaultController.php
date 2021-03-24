@@ -261,7 +261,7 @@ class DefaultController extends Controller
             'success' => true,
             'message' => [
                 'status' => $info['content']['status'],
-                'price' => $info['content']['pricing']['offer']['price'] ?? null,
+                'price' => $info['content']['pricing']['final_price'] ?? $info['content']['pricing']['offer']['price'] ?? null,
             ],
         ];
     }
