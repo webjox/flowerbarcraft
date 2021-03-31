@@ -96,14 +96,14 @@ class Order extends OrderModel
         $data = [];
         $files = $this->files;
         if (!empty($files)) {
-            foreach ($files as $file) {
-                $data[] = Html::a($file->filename, Yii::getAlias("@web/files/{$file->crm_id}_{$file->filename}"), ['target' => '_blank']);
+            foreach ($files as $key => $file) {
+                $data[] = Html::a('Файл ' . ($key + 1), Yii::getAlias("@web/files/{$file->crm_id}_{$file->filename}"), ['target' => '_blank']);
             }
         }
         if (empty($data)) {
             return '-';
         }
-        return implode(', ', $data);
+        return implode('<br>', $data);
     }
 
     /**

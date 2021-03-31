@@ -56,8 +56,16 @@ $dataSumm = Yii::$app
         ],
         'columns' => [
             [
-                'label' => 'Дата и время доставки',
+                'attribute' => 'crm_id',
+                'format' => 'raw',
+                'value' => function (Order $model) {
+                    return Html::a($model->crm_id, ['view', 'id' => $model->id]);
+                }
+            ],
+            [
+                'label' => 'Дата и время',
                 'attribute' => 'date',
+                'format' => 'raw',
                 'value' => function (Order $model) {
                     $data = [];
                     if ($model->delivery_date) {
@@ -69,7 +77,7 @@ $dataSumm = Yii::$app
                     if (empty($data)) {
                         return '-';
                     }
-                    return implode(' ', $data);
+                    return implode('<br>', $data);
                 },
                 'filter' => DatePicker::widget([
                     'model' => $searchModel,
@@ -79,7 +87,7 @@ $dataSumm = Yii::$app
                     'separator' => '-',
                     'pluginOptions' => ['format' => 'dd.mm.yyyy']
                 ]),
-                'headerOptions' => ['style' => 'width: 240px;'],
+                'headerOptions' => ['style' => 'width: 135px;'],
             ],
             [
                 'label' => 'Товары',
@@ -100,9 +108,9 @@ $dataSumm = Yii::$app
                                 'style' => 'margin-right: 10px',
                             ]);
                         }
-                        $li .= Html::tag('li', $img . $name);
+                        $li .= Html::tag('li', $name . '<br>' . $img);
                     }
-                    return Html::tag('ul', $li, ['style' => 'list-style: none; padding-left:0']);
+                    return Html::tag('ul', $li, ['class' => 'product-item-list']);
                 },
                 'format' => 'raw',
             ],
@@ -159,7 +167,6 @@ $dataSumm = Yii::$app
                     return Yii::$app->formatter->asCurrency($sum / 100);
                 },
             ],
-            'crm_id',
             [
                 'class' => 'yii\grid\ActionColumn',
                 'template' => '{view}<br>{accept}<br>{reject}',
