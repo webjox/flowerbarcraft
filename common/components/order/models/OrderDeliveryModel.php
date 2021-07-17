@@ -11,6 +11,7 @@ use yii\base\InvalidConfigException;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveQuery;
 use yii\db\ActiveRecord;
+use Yii;
 
 /**
  * Class OrderDeliveryModel
@@ -175,6 +176,7 @@ class OrderDeliveryModel extends ActiveRecord
     public function sendDeliveryRequest()
     {
         if (YII_DEBUG) {
+            Yii::debug();
             return [
                 'statusCode' => 400,
                 'content' => [

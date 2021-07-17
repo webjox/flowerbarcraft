@@ -13,11 +13,13 @@ class Status extends StatusModel
     /**
      * @inheritDoc
      */
+
+
     public function rules()
     {
         return [
-            [['available', 'show_in_list'], 'boolean'],
-            ['color', 'string'],
+            [['available', 'show_in_list','permission'], 'boolean'],
+            [['color','nextStatus'], 'string'],
             ['available', 'validateAvailable'],
         ];
     }
@@ -32,8 +34,10 @@ class Status extends StatusModel
             'active' => 'Активен',
             'available' => 'Доступен',
             'show_in_list' => 'Показывать заказы',
+            'permission' => 'Доступна смена статуса',
             'color' => 'Цвет',
             'bgColor' => 'Цвет',
+            'nextStatus' => 'Следущий статус',
         ];
     }
 

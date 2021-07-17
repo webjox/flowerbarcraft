@@ -13,7 +13,7 @@ use yii\httpclient\Exception;
 class YaDeliveryClient
 {
     const URL = 'https://b2b.taxi.yandex.net';
-    const TOKEN = 'AgAAAABJssy_AAVM1e9rH2FpxEeQmlFY1_Vu0uo';
+    const TOKEN = 'AQAAAABUeu3IAAVM1d6cANtmGUoZmT0RMWZX2cM';
 
     /**
      * @return Client
@@ -51,7 +51,7 @@ class YaDeliveryClient
             ->setUrl('/b2b/cargo/integration/v2/claims/create?request_id=' . uniqid())
             ->setData([
                 'client_requirements' => [
-                    'taxi_class' => 'express',
+                    'taxi_class' => 'courier',
                 ],
                 'items' => $data['items'],
                 'route_points' => $data['points'],

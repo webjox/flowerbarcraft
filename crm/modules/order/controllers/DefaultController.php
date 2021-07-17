@@ -3,17 +3,24 @@
 namespace crm\modules\order\controllers;
 
 use common\components\order\models\OrderDeliveryModel;
+use crm\modules\order\models\OrderImage;
+use common\components\settings\models\SettingsModel;
 use common\components\user\models\UserDelivery;
 use common\components\yandexGoDelivery\YaDeliveryClient;
 use common\models\User;
 use crm\modules\order\models\Order;
 use crm\modules\order\models\OrderSearch;
+use crm\modules\settings\forms\SettingsForm;
+use crm\modules\settings\models\Status;
+use crm\modules\site\models\Site;
 use kartik\grid\EditableColumnAction;
 use kartik\mpdf\Pdf;
 use Mpdf\MpdfException;
 use setasign\Fpdi\PdfParser\CrossReference\CrossReferenceException;
 use setasign\Fpdi\PdfParser\PdfParserException;
 use setasign\Fpdi\PdfParser\Type\PdfTypeException;
+use Swift_Image;
+use Symfony\Component\String\ByteString;
 use Yii;
 use yii\base\InvalidConfigException;
 use yii\filters\AccessControl;
@@ -23,7 +30,10 @@ use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
-
+use yii\web\UploadedFile;
+use yii\httpclient\Client;
+use function MongoDB\BSON\toJSON;
+use yii\imagine\Image;
 /**
  * Class DefaultController
  * @package crm\modules\order\controllers
@@ -54,13 +64,16 @@ class DefaultController extends Controller
                     ],
                     [
                         'allow' => true,
-                        'actions' => ['list', 'view', 'download', 'accept', 'reject', 'create-delivery', 'get-delivery-status', 'cancel-delivery', 'accept-delivery'],
+                        'actions' => ['list', 'view', 'download', 'accept', 'reject', 'create-delivery', 'get-delivery-status', 'cancel-delivery', 'accept-delivery','upload','delete','load-image'],
                         'roles' => [User::ROLE_FLORIST],
                     ],
                 ],
             ],
         ];
     }
+
+
+
 
     /**
      * {@inheritdoc}
@@ -75,10 +88,11 @@ class DefaultController extends Controller
                     return $model->status ? Html::tag('span', $model->status->name, [
                         'class' => 'btn btn-status',
                         'style' => "background: {$model->status->bgColor}"
-                    ]) : '-';
+                    ])  : '-';
                 },
             ]
         ]);
+
     }
 
     /**
@@ -89,11 +103,13 @@ class DefaultController extends Controller
         $searchModel = new OrderSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
+
         return $this->render('list', [
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
         ]);
     }
+
 
     /**
      * @param $id
@@ -104,7 +120,9 @@ class DefaultController extends Controller
     public function actionView($id)
     {
         $model = $this->find($id);
-
+        OrderImage::deleteAll(['order_id'=>$model['crm_id']]);
+        $input = new Order();
+        $input_comment = new Order();
         $yaDeliveryModel = null;
         $delivery = Yii::$app->user->identity->delivery ?? null;
         if ($delivery && $delivery->active) {
@@ -138,12 +156,148 @@ class DefaultController extends Controller
                 ]);
             }
         }
+        if(Yii::$app->request->isPost&&$input->load(Yii::$app->request->post())){
+            $post = Yii::$app->request->post();
+            $order = Yii::$app->request->post('Order');
+            $input->crm = UploadedFile::getInstances($input,'crm');
+            $input->comment = $order['comment'];
+            if($input->validate()){
+                if($input->crm) {
 
+                }
+                else {
+                    $order = Yii::$app->request->post('Order');
+                    $comment = $order['comment'];
+                    $comment = $model->manager_comment." | ".$comment." |";
+                    $comment = str_replace(array("\r","\n"),"",$comment);
+                    //var_dump($comment);
+                    if($comment){
+                        $site = SettingsModel::find()->select(['value','key'])->where(['id'=>1])->one();
+                        $site = $site['value'];
+                        $api = SettingsModel::find()->select(['value','key'])->where(['id'=>2])->one();
+                        $api = $api['value'];
+                        $code = $model->site->code;
+                        $url = $site."/api/v5/orders/".$model->number."/edit?apiKey=".$api."&by=id&site=".$code;
+                        $ch = curl_init();
+                        curl_setopt($ch, CURLOPT_URL,$url);
+                        curl_setopt($ch, CURLOPT_POST, true);
+                        curl_setopt($ch, CURLOPT_POSTFIELDS,"order={
+                                \"managerComment\":\"".$comment."\"
+                                            }");
+
+                        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded'));
+                        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                        $server_output = curl_exec ($ch);
+                        curl_close ($ch);
+                        $ch = curl_init();
+                        curl_setopt($ch, CURLOPT_URL,$url);
+                        curl_setopt($ch, CURLOPT_POST, true);
+                        curl_setopt($ch, CURLOPT_POSTFIELDS,"order={
+                                \"managerComment\":\"".$comment."\"
+                                            }");
+
+                        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded'));
+                        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                        $server_output = curl_exec ($ch);
+                        curl_close ($ch);
+
+                        //echo "Ответ: " . $server_output;die;
+                    }else{
+                        Yii::$app->session->setFlash('error', "Заполните поля");
+                    }
+                }
+            }
+
+
+        }
         return $this->render('view', [
             'model' => $model,
             'yaDeliveryModel' => $yaDeliveryModel,
+            'input'=>$input,
+            'input_comment'=>$input_comment,
         ]);
     }
+
+    public function actionUpload($id)
+    {
+        if (isset($_POST)) {
+            $files= Order::SaveTempAttachments($_FILES);
+            $result = ['files'=>$files];
+            foreach ($files as $file){
+                $image = Yii::getAlias('@webroot/images/'.$file['fileName']);
+                Image::resize($image,958,1080)->save();
+                $model = new OrderImage();
+                $model->order_id = $id;
+                $model->filename = $file['fileName'];
+                $model->save();
+            }
+            Yii::$app->response->format = trim(Response::FORMAT_JSON);
+            return $result;
+        }
+
+    }
+
+    public function actionDelete(){
+        if(Yii::$app->request->isPost){
+            $post = Yii::$app->request->post();
+            OrderImage::deleteAll(['order_id'=>$post['data']['id']]);
+        }
+    }
+
+    public function actionLoadImage($id){
+        if(Yii::$app->request->isPost){
+            $post = Yii::$app->request->post();
+            $files = OrderImage::find()->where(['order_id'=>$post['Order']['crm']])->all();
+            foreach ($files as $file){
+                $filename = $file['filename'];
+                $site = SettingsModel::find()->select(['value','key'])->where(['id'=>1])->one();
+                $site = $site['value'];
+                $api = SettingsModel::find()->select(['value','key'])->where(['id'=>2])->one();
+                $api = $api['value'];
+                $url = $site."/api/v5/files/upload?apiKey=".$api;
+                $contents = file_get_contents('images/'.$filename);
+                $client = new Client();
+                $response = $client->createRequest()
+                    ->setMethod('post')
+                    ->addHeaders(['content-type' => 'application/x-www-form-urlencoded'])
+                    ->setUrl($url)
+                    ->setContent($contents)
+                    ->send();
+                if($response->isOk){
+                    $json = (json_decode($response->content,true));
+                    $idImage = $json['file']['id'];
+                    $ch = curl_init();
+                    $url = $site."/api/v5/files/$idImage/edit?apiKey=".$api;
+                    $filename = "photo-".$post['Order']['crm']."-".$filename;
+                    $idOrder = $post['Order']['crm'];
+                    $site = "spb-flowerbarkraft.ru";
+                    curl_setopt($ch, CURLOPT_URL,$url);
+                    curl_setopt($ch, CURLOPT_POST, true);
+                    curl_setopt($ch, CURLOPT_POSTFIELDS,
+                        "file={
+                                \"filename\":\"".$filename."\",
+                                \"attachment\":[{
+                                   \"order\":{\"id\":\"".$idOrder."\",
+                                   \"site\":\"".$site."\"}
+                                }]
+                                            }");
+                    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded'));
+                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                    $server_output = curl_exec ($ch);
+                    curl_close ($ch);
+                }else{
+
+                }
+            }
+            OrderImage::deleteAll(['order_id'=>$post['Order']['crm']]);
+            $model = Order::find()->where(['id'=>$id])->one();
+            $id_status = Status::find()->select('id')->where(["name"=>"На согласовании"])->one();
+            $model->status_id = $id_status['id'];
+            $model->save();
+            return $this->redirect('/order/view/'.$id);
+        }
+    }
+
 
     /**
      * @param $id
@@ -421,4 +575,6 @@ class DefaultController extends Controller
 
         return $model;
     }
+
+
 }

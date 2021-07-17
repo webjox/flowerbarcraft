@@ -76,6 +76,9 @@ class Order
     public static function create(array $data)
     {
         $order = new self();
+          file_put_contents('data-all.json', $data);
+        //   file_put_contents('data-status.json', $data['statusCode']);
+        //   file_put_contents('data-type.json', $data['deliveryType']);
         $order->crm_id = !empty($data['id']) ? $data['id'] : null;
         $order->number = !empty($data['number']) ? $data['number'] : null;
         $order->external_id = !empty($data['externalId']) ? $data['externalId'] : null;
@@ -122,8 +125,22 @@ class Order
         $order->to_pay_summ = !empty($data['toPaySumm']) ? (int)($data['toPaySumm'] * 100) : 0;
         $order->recipient_name = !empty($data['recipientName']) ? $data['recipientName'] : null;
         $order->recipient_phone = !empty($data['recipientPhone']) ? $data['recipientPhone'] : null;
+        // if($data['deliveryType']=="Самовывоз"&&$data['statusCode']=="client-confirmed"){
+        //     $statusId = StatusModel::find()->select('id')->where(['code' => $data['statusCode']])->scalar();
+        //     $order->status_id = 2;
+        // }
+        //  if($data['deliveryType']=="Доставка курьером"&&$data['statusCode']=="delivering"){
+        //     $statusId = StatusModel::find()->select('id')->where(['code' => $data['statusCode']])->scalar();
+        //     $order->status_id = 2;
+        // }
+         if($siteId==34) {
+          file_put_contents('data-all.json', $data);
+          file_put_contents('data-status.json', $data['statusCode']);
+          file_put_contents('data-type.json', $data['deliveryType']);
+         }
         if (!empty($data['items'])) {
             $order->setItems($data['items']);
+            if($siteId==34) file_put_contents('data-value.json', $data['items']);
         }
         if (!empty($data['payments'])) {
             $order->setPayments($data['payments']);
@@ -151,7 +168,8 @@ class Order
     public function setItems($value)
     {
         $items = json_decode(html_entity_decode($value), true);
-
+        
+          file_put_contents('data-value.json', $value);
         if (!empty($items) && is_array($items)) {
             foreach ($items as $item) {
                 if (is_array($item)) {

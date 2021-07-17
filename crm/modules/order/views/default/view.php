@@ -32,6 +32,7 @@ $delivery = Yii::$app->user->identity->delivery ?? null;
     </p>
 <?php endif; ?>
 <div class="order-list">
+
     <?= DetailView::widget([
         'id' => 'order-info',
         'model' => $model,
@@ -54,6 +55,7 @@ $delivery = Yii::$app->user->identity->delivery ?? null;
                     if (!$model->is_accepted) {
                         return $model->status->name;
                     }
+
                     return Editable::widget([
                         'model' => $model,
                         'additionalData' => ['editableIndex' => 0, 'editableKey' => $model->id],
@@ -62,16 +64,43 @@ $delivery = Yii::$app->user->identity->delivery ?? null;
                         'displayValue' => (function () use ($model) {
                             return $model->status ? Html::tag('span', $model->status->name, [
                                 'class' => 'btn btn-status',
-                                'style' => "background: {$model->status->bgColor}"
+                                'style' => "background: {$model->status->bgColor}",
+
+
                             ]) : '-';
                         })(),
                         'asPopover' => true,
                         'inputType' => Editable::INPUT_DROPDOWN_LIST,
-                        'data' => Order::getAvailableStatuses(),
+                        'data' => Order::getListStatus($model->status_id,$model->delivery_type),
+                        'editableValueOptions'=> Order::checkPermission($model->status_id)? []:['disabled'=>''],
                     ]);
+
                 },
                 'format' => 'raw',
             ],
+            [
+                    'attribute'=> 'crm',
+                    'value'=>function() use ($input,$model){
+                     return  $this->render('form',['input'=>$input,'model'=>$model]);
+                    },
+                'format' => 'raw',
+                'visible'=>(function() use ($model){
+                    if ($model->status_id==19 || $model->status_id==26) return true;
+                    else return false;
+                })(),
+
+
+            ],
+            [
+                'attribute'=> 'comment',
+                'value'=>function() use ($input_comment){
+                    return  $this->render('form_comment',['input_comment'=>$input_comment]);
+                },
+                'format' => 'raw',
+
+            ],
+
+
             'created_at:datetime',
             'customer',
             'recipient',
@@ -123,13 +152,21 @@ $delivery = Yii::$app->user->identity->delivery ?? null;
         ],
         'columns' => [
             [
-                'label' => 'Изображение',
+                'label' => 'Изображение',     // Проверка на наличие ссылки на картинку (новое поле) убрать через неделю
                 'value' => function (OrderItemModel $data) {
-                    $imgSrc = $data->offer->lastImage->image_url ?? null;
-                    if (!$imgSrc) {
-                        return null;
+                    if(isset($data->imageUrl)) {
+                        $imgSrc = $data->imageUrl ?? null;
+                        if (!$imgSrc) {
+                            return null;
+                        }
+                        return Html::a(Html::img($imgSrc, ['width' => '100', 'alt' => '']), $imgSrc, ['target' => '_blank']);
+                    }else {
+                        $imgSrc = $data->offer->lastImage->image_url ?? null;
+                        if (!$imgSrc) {
+                            return null;
+                        }
+                        return Html::a(Html::img($imgSrc, ['width' => '100', 'alt' => '']), $imgSrc, ['target' => '_blank']);
                     }
-                    return Html::a(Html::img($imgSrc, ['width' => '100', 'alt' => '']), $imgSrc, ['target' => '_blank']);
                 },
                 'format' => 'raw',
                 'headerOptions' => ['style' => 'width: 117px;'],
@@ -143,6 +180,14 @@ $delivery = Yii::$app->user->identity->delivery ?? null;
                         $name .= Html::tag('div', "Вес: {$data->weight} гр.", ['class' => 'item-property']);
                     }
                     return $name;
+                },
+                'format' => 'html'
+            ],
+             [
+                'label' => 'Состав',
+                'attribute' => 'manufacturer',
+                'value' => function (OrderItemModel $data) {
+                    return $data->manufacturer;
                 },
                 'format' => 'html'
             ],
@@ -196,7 +241,11 @@ $delivery = Yii::$app->user->identity->delivery ?? null;
         ],
         'attributes' => [
             'delivery_type',
-            'deliveryAddressList:html',
+            [
+                    'attribute'=>'deliveryAddressList',
+                    'format'=>'html',
+                    'value'=>'<div class="address-detail" >'.$model->deliveryAddressList.'</div>',
+            ],
             'delivery_date:date',
             'delivery_time',
         ],
@@ -307,6 +356,8 @@ $delivery = Yii::$app->user->identity->delivery ?? null;
     <?php endif; ?>
 </div>
 <?php $this->registerJs('
+
+
 function getStatusInfo($status) {
     if ($status === "new") {
         return "Заявка создана";
@@ -365,6 +416,31 @@ function getStatusInfo($status) {
     }
     return null;
 }
+
+$(".kv-editable-submit").click(function e(){setTimeout(function(){
+location.reload();
+},2000)
+})
+
+        $(".fileinput-remove").on("click", function(e){
+            var status = '.$model->status_id.';
+            if(status===19) {
+                var id = '.$model->crm_id.';
+                var obj = {"id": id};
+                $.ajax({
+                    url: "/order/delete",
+                    method: "post",
+                    dataType: "json",
+                    data: {data: obj},
+                    success: function (data) {
+                        console.log(data);
+                    }
+                })
+            }
+            location.reload();
+          
+        })
+
 
 function updateDeliveryStatus() {
     $.ajax({
@@ -464,3 +540,10 @@ $("#ya-delivery-form").on("beforeSubmit", function() {
     return false;
 });
 ');
+?>
+
+
+
+
+
+

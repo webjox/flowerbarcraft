@@ -164,20 +164,80 @@ a.desc:after {
 .product-item-list li:last-child {
     margin-bottom: 0;
 }
+.order-two{
+    display: none;
+}
 @media screen and (max-width: 991px) {
-    #order-list-container tr th:nth-child(4),
-    #order-list-container tr td:nth-child(4),
+
     #order-list-container tr th:nth-child(5),
     #order-list-container tr td:nth-child(5),
+    #order-list-container tr th:nth-child(4),
+    #order-list-container tr td:nth-child(4),
     #order-list-container tr th:nth-child(6),
     #order-list-container tr td:nth-child(6),
-    #order-list-container tr th:nth-child(8),
-    #order-list-container tr td:nth-child(8),
+
     #order-list-container tr th:nth-child(9),
     #order-list-container tr td:nth-child(9) {
         display: none;
     }
+    #order-list-container tr th:nth-child(1),
+    #order-list-container tr td:nth-child(1),
+    #order-list-container tr th:nth-child(2),
+    #order-list-container tr td:nth-child(2),
+    #order-list-container tr th:nth-child(3),
+    #order-list-container tr td:nth-child(3),
+    #order-list-container tr th:nth-child(7),
+    #order-list-container tr td:nth-child(7),
+    #order-list-container tr th:nth-child(8),
+    #order-list-container tr td:nth-child(8){
+        width: 100%;
+        border: 3px;
+        white-space: normal;
+    }
     .product-item-list li {
         white-space: normal !important;
+    }
+    .order-one{
+        display: none;
+    }
+    .order-two{
+        display: block;
+        width: 110px !important;
+    }
+}
+
+@media only screen and (min-width : 320px) and (max-width : 767px) {
+    .kv-attribute{
+        width: 130px;
+        white-space: normal !important;
+    }
+    /*.form-control{*/
+    /*    width: 125px;*/
+    /*}*/
+    .address-detail{
+        width: 230px!important;
+        word-break: break-all;
+    }
+
+    .file-drop-zone-title{
+        display: none;
+    }
+    .kv-file-content{
+        width: 100px;
+    }
+    .file-preview-frame{
+        margin:0;
+        padding: 0;
+        width: 100%;
+    }
+    .krajee-default .file-caption-info{
+        width: 60px!important;
+    }
+    .krajee-default .file-size-info{
+        width: 60px!important;
+    }
+    .krajee-default.file-preview-frame .kv-file-content{
+        width: 100% !important;
+        height: 100% !important;
     }
 }

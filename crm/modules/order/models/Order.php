@@ -11,6 +11,7 @@ use Yii;
 use yii\base\InvalidConfigException;
 use yii\helpers\Html;
 use yii\web\BadRequestHttpException;
+use yii\web\UploadedFile;
 
 /**
  * Class Order
@@ -18,7 +19,7 @@ use yii\web\BadRequestHttpException;
  *
  * @property-read int $totalSumm
  * @property-read int $toPaySumm
- * @property-read null|string $statusName
+ * @property null|string $statusName
  * @property-read null|string $siteName
  * @property-read null|string $customerPhones
  * @property-read string $fileList
@@ -37,10 +38,19 @@ class Order extends OrderModel
     /**
      * @inheritDoc
      */
+
+    /**
+     * @var UploadedFile[]
+     */
+    public $crm;
+    public $comment;
+
     public function rules()
     {
         return [
             ['status_id', 'in', 'range' => array_keys(self::getAvailableStatuses())],
+            ['crm','safe'],
+            [['comment'],'string'],
         ];
     }
 
@@ -50,6 +60,89 @@ class Order extends OrderModel
     public static function getAvailableStatuses()
     {
         return StatusModel::find()->select(['name', 'id'])->where(['active' => true, 'available' => true])->indexBy('id')->column();
+    }
+
+
+
+    public function upload(){
+        if($this->validate()){
+            foreach ($this->crm as $image){
+                $image->saveAs('images/uploads/' . $this->randomFileName($image->extension));
+            }
+            return true;
+        }else{
+            return false;
+        }
+
+    }
+
+    public static function SaveTempAttachments($attachments)
+    {
+
+        $allowedFiles=['jpg','jpeg','png'];
+        if (!empty($attachments)) {
+            if (count($attachments['files']['name']) > 0) {
+                //Loop through each file
+                for ($i = 0; $i < count($attachments['files']['name']); $i++) {
+                    //Get the temp file path
+                    $tmpFilePath = $attachments['files']['tmp_name'][$i];
+
+                    //Make sure we have a filepath
+                    if ($tmpFilePath != "") {
+                        //save the filename
+                        $shortname = $attachments['files']['name'][$i];
+                        $size = $attachments['files']['size'][$i];
+                        $ext = substr(strrchr($shortname, '.'), 1);
+                        if(in_array($ext,$allowedFiles)){
+                            //save the url and the file
+                            $newFileName = date("Y-m-d")."-".$shortname;
+                            //Upload the file into the temp dir
+                            if (move_uploaded_file($tmpFilePath, 'images'. '/' . $newFileName)) {
+                                $files[] =['fileName'=>$newFileName,'type'=>$ext,'size'=>(($size/1000)),'originalName'=>$shortname];
+                            }
+                        }
+                    }
+                }
+            }
+
+        }
+        return $files;
+    }
+
+    private function randomFileName($extension = false)
+    {
+        $extension = $extension ? '.' . $extension : '';
+        do {
+            $name = md5(microtime() . rand(0, 1000));
+            $file = $name . $extension;
+        } while (file_exists($file));
+        return $file;
+    }
+
+    public function getIdCrm(){
+        return $this->crm_id;
+    }
+
+
+    public static function checkPermission($status)
+    {
+        $model=StatusModel::find()->where(['active' => true, 'available' => true,'id'=>$status,'permission'=>true])->one();
+        $nextStatus = StatusModel::find()->where(['active' => true, 'available' => true,'id'=>$model['nextStatus']])->one();
+        if($model&&$nextStatus){
+            return true;
+        }
+        else return false;
+    }
+
+
+
+    public static function getListStatus($status,$type){
+        $model = StatusModel::find()->select(['name','id','nextStatus'])->where(['active' => true, 'available' => true,'id'=>$status,'permission'=>true])->indexBy('id')->one();
+        if($status == 4 && $type =="Доставка курьером"|| $status == 13 && $type =="Самовывоз"){
+            return StatusModel::find()->select(['name', 'id'])->where(['active' => true, 'available' => true,'id'=>2])->indexBy('id')->column();
+        }else {
+            return StatusModel::find()->select(['name', 'id'])->where(['active' => true, 'available' => true, 'id' => $model['nextStatus']])->indexBy('id')->column();
+        }
     }
 
     /**
@@ -85,6 +178,9 @@ class Order extends OrderModel
             'prepaySum' => 'Оплачено',
             'toPaySumm' => 'Сумма к оплате',
             'fileList' => 'Файлы',
+            'crm'=>'Загрузка фото',
+            'comment'=>'Добавить комментарий',
+
         ];
     }
 

@@ -19,6 +19,14 @@ return [
         'request' => [
             'csrfParam' => '_csrf-crm',
         ],
+        'formatter' => [
+            'class' => 'yii\i18n\Formatter',
+            'locale' => 'en-US', //ej. 'es-ES'
+            'thousandSeparator' => '.',
+            'decimalSeparator' => ',',
+            'currencyCode' => 'RUB',
+
+        ],
         'authManager' => [
             'class' => 'yii\rbac\PhpManager',
             'defaultRoles' => [User::ROLE_ADMIN, User::ROLE_FLORIST],
@@ -80,6 +88,7 @@ return [
                 'notifications' => 'notifications/default/index',
                 'webhook/<action:[a-z-]+>' => 'webhook/<action>',
                 'tg/callback' => 'tg/callback',
+
             ],
         ],
     ],

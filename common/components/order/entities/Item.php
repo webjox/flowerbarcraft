@@ -20,6 +20,8 @@ class Item
     public $crm_offer_id;
     public $name;
     public $weight;
+    public $imageUrl;
+    public $manufacturer;
 
     /**
      * @param array $data
@@ -41,7 +43,8 @@ class Item
         $item->crm_offer_id = !empty($data['offer_id']) ? $data['offer_id'] : null;
         $item->name = !empty($data['name']) ? $data['name'] : null;
         $item->weight = !empty($data['weight']) ? $data['weight'] : null;
-
+        $item->imageUrl = !empty($data['imageUrl']) ? $data['imageUrl'] : null;
+        $item->manufacturer = !empty($data['manufacturer']) ? $data['manufacturer'] : null;
         return $item;
     }
 }

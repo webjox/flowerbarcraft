@@ -21,6 +21,8 @@ class OrderItemWebhookModel extends Model
     public $crm_offer_id;
     public $name;
     public $weight;
+    public $imageUrl;
+    public $manufacturer;
 
     /**
      * @inheritDoc
@@ -28,7 +30,7 @@ class OrderItemWebhookModel extends Model
     public function rules()
     {
         return [
-            [['price', 'quantity', 'summ', 'offer_id', 'crm_offer_id', 'name', 'initial_price', 'discount_summ', 'weight'], 'safe'],
+            [['price', 'quantity', 'summ', 'offer_id', 'crm_offer_id', 'name', 'initial_price', 'discount_summ', 'weight','imageUrl','manufacturer'], 'safe'],
             ['crm_id', 'unique', 'targetClass' => OrderItemModel::class, 'targetAttribute' => 'crm_id'],
         ];
     }

@@ -52,9 +52,14 @@ class DefaultController extends Controller
             throw new NotFoundHttpException('Статус не найден');
         }
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
+        if ($model->load(Yii::$app->request->post()) ) {
+            if($model->permission==0&&$model->nextStatus!=""){
+                $model->nextStatus = "";
+            }
+            $model->save();
             Yii::$app->session->setFlash('success', "Статус \"{$model->name}\" успешно обновлен");
             return $this->redirect(['index']);
+
         }
 
         return $this->render('status-update', ['model' => $model]);

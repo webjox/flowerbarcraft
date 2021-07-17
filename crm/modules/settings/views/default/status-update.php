@@ -35,6 +35,16 @@ $this->params['breadcrumbs'][] = $this->title;
                     ->checkbox()
                     ->hint('Выводить заказы с этим статусом?') ?>
 
+                <?= $form
+                    ->field($model, 'permission')
+                    ->checkbox()
+                    ->hint('Доступна ли смена этого статуса на другой?') ?>
+                <div class="next" <?if($model->permission==0) echo "hidden"?>>
+                <?= $form
+                    ->field($model, 'nextStatus')
+                    ->dropDownList(\yii\helpers\ArrayHelper::map(Status::find()->all(),'id','name'))
+                    ->hint('Статус в который можно перейти с текущего') ?>
+                </div>
                 <?= ColorInput::widget([
                     'model' => $model,
                     'attribute' => 'color',
@@ -53,3 +63,8 @@ $this->params['breadcrumbs'][] = $this->title;
         </div>
     </div>
 </div>
+<?php $this->registerJs("$('#status-permission').change(function() {
+        if(this.checked)
+        $('.next').show();
+        else  $('.next').hide();
+    });"); ?>

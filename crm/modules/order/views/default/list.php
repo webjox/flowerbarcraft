@@ -1,4 +1,4 @@
-<?php
+    <?php
 
 use common\components\settings\models\StatusModel;
 use crm\modules\order\models\Order;
@@ -98,17 +98,26 @@ $dataSumm = Yii::$app
                     }
                     $li = '';
                     foreach ($items as $item) {
-                        $name = $item->name;
-                        $img = null;
-                        $offer = $item->offer;
-                        if ($offer && $offer->images) {
-                            $url = $offer->lastImage->image_url;
-                            $img = Html::a(Html::img($url, ['width' => 45, 'height' => 45]), $url, [
+                        if (isset($item['imageUrl'])) { // Проверка на наличие ссылки на картинку (новое поле) убрать через неделю
+                            $name = $item->name;;
+                            $img =  Html::a(Html::img($item->imageUrl, ['width' => 45, 'height' => 45]), $item->imageUrl, [
                                 'target' => '_blank',
                                 'style' => 'margin-right: 10px',
                             ]);
+                            $li .= Html::tag('li', $name . '<br>' . $img);
+                        } else {
+                            $name = $item->name;
+                            $img = null;
+                            $offer = $item->offer;
+                            if ($offer && $offer->images) {
+                                $url = $offer->lastImage->image_url;
+                                $img = Html::a(Html::img($url, ['width' => 45, 'height' => 45]), $url, [
+                                    'target' => '_blank',
+                                    'style' => 'margin-right: 10px',
+                                ]);
+                            }
+                            $li .= Html::tag('li', $name . '<br>' . $img);
                         }
-                        $li .= Html::tag('li', $name . '<br>' . $img);
                     }
                     return Html::tag('ul', $li, ['class' => 'product-item-list']);
                 },
@@ -125,16 +134,20 @@ $dataSumm = Yii::$app
             [
                 'label' => 'Заказчик',
                 'attribute' => 'customer',
+                'contentOptions' => ['class' => 'order-one'],
+                'filterOptions'=>['class'=>'order-one'],
+                'headerOptions' => ['class' => 'order-one']
             ],
             [
-                'class' => EditableColumn::class,
+                'label' => 'Заказчик',
+                'attribute' => 'customer',
+                'contentOptions' => ['class' => 'order-two'],
+                'filterOptions'=>['class'=>'order-two'],
+                'headerOptions' => ['class' => 'order-two']
+            ],
+            [
+
                 'attribute' => 'status_id',
-                'readonly' => function ($model) {
-                    if (!$model->is_accepted) {
-                        return true;
-                    }
-                    return false;
-                },
                 'value' => function ($model) {
                     return $model->status->name ?? '-';
                 },
@@ -145,18 +158,25 @@ $dataSumm = Yii::$app
                     ['class' => 'form-control', 'prompt' => 'Все']
                 ),
                 'headerOptions' => ['style' => 'width: 150px;'],
+
+                'class' => EditableColumn::class,
+                //'contentOptions'=> ['style'=>'width:300px'],
                 'editableOptions' => function ($model, $key, $index) use ($statusList) {
+
                     return [
                         'header' => 'статус',
                         'formOptions' => ['action' => ['update-status']],
                         'inputType' => Editable::INPUT_DROPDOWN_LIST,
                         'placement' => PopoverX::ALIGN_LEFT_BOTTOM,
-                        "data" => $statusList,
+                        "data" => Order::getListStatus($model->status->id,$model->delivery_type),
                         'displayValue' => $model->status ? Html::tag('span', $model->status->name, [
                             'class' => 'btn btn-status',
-                            'style' => "background: {$model->status->bgColor}"
+                            'style' => "background: {$model->status->bgColor}",
                         ]) : '-',
+                        'editableValueOptions'=> Order::checkPermission($model->status->id)? []:['disabled'=>''],
+
                     ];
+
                 },
             ],
             [
@@ -190,3 +210,8 @@ $dataSumm = Yii::$app
         ],
     ]) ?>
 </div>
+<?php $this->registerJs('
+$(".kv-editable-submit").click(function e(){setTimeout(function(){
+location.reload();
+},2000)
+})');

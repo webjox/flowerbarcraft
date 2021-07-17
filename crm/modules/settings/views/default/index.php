@@ -21,7 +21,7 @@ $this->params['breadcrumbs'][] = $this->title;
     <div class="col-md-8">
         <div class="settings-form box box-primary">
             <?php $form = ActiveForm::begin(); ?>
-            <div class="box-body">
+            <div class="box-body" style="width: 900px">
                 <?= $form->errorSummary($model); ?>
 
                 <?= $form->field($model, SettingsModel::PARAM_CRM_URL)->textInput() ?>
@@ -34,6 +34,7 @@ $this->params['breadcrumbs'][] = $this->title;
                     'export' => false,
                     'layout' => '{items}',
                     'summary' => false,
+                    'formatter' => ['class' => 'yii\i18n\Formatter','nullDisplay' => 'Нет'],
                     'toggleData' => false,
                     'panel' => [
                         'heading' => '<h3 class="panel-title">Статусы</h3>',
@@ -46,6 +47,16 @@ $this->params['breadcrumbs'][] = $this->title;
                         'active:boolean',
                         'available:boolean',
                         'show_in_list:boolean',
+                        'permission:boolean',
+                        [
+                            'attribute' => 'nextStatus',
+
+                            'value' => function (Status $model){
+                                $status = Status::find()->where(['id'=>$model->nextStatus])->one();
+                                return $status['name'];
+                            },
+
+                        ],
                         [
                             'attribute' => 'bgColor',
                             'value' => function (Status $model) {

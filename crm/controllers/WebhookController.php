@@ -57,6 +57,8 @@ class WebhookController extends Controller
                 Yii::info("Старт процесса: Синхронизация заказа #{$order->crm_id} по триггеру", 'retailcrm');
                 $model = new OrderWebhookModel();
                 if ($model->load($order->asArray()) && $model->save()) {
+                    $model = \crm\modules\order\models\Order::find()->where(['id'=>$order->crm_id])->one();
+                    file_put_contents('data-all-model-1.json', $model);
                     Yii::info("Завершение процесса: Синхронизация заказа #{$order->crm_id} по триггеру\nСтатус: success", 'retailcrm');
                 } else {
                     Yii::info($order->asArray(), 'retailcrm');

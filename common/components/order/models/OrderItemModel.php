@@ -21,6 +21,8 @@ use yii\db\ActiveRecord;
  * @property int $initial_price [int(11)]
  * @property int $discount_summ [int(11)]
  * @property int $weight [int(11)]
+ * @property string $imageUrl [varchar(500)]
+ * @property string $manufacturer [varchar(250)]
  *
  * @property ProductOfferModel $offer
  */
