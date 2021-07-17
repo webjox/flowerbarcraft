@@ -169,15 +169,19 @@ a.desc:after {
 }
 @media screen and (max-width: 991px) {
 
-    #order-list-container tr th:nth-child(5),
-    #order-list-container tr td:nth-child(5),
+
     #order-list-container tr th:nth-child(4),
     #order-list-container tr td:nth-child(4),
+    #order-list-container tr th:nth-child(5),
+    #order-list-container tr td:nth-child(5),
     #order-list-container tr th:nth-child(6),
     #order-list-container tr td:nth-child(6),
+    #order-list-container tr th:nth-child(7),
+    #order-list-container tr td:nth-child(7),
+    #order-list-container tr th:nth-child(10),
+    #order-list-container tr td:nth-child(10)
 
-    #order-list-container tr th:nth-child(9),
-    #order-list-container tr td:nth-child(9) {
+    {
         display: none;
     }
     #order-list-container tr th:nth-child(1),
@@ -186,10 +190,14 @@ a.desc:after {
     #order-list-container tr td:nth-child(2),
     #order-list-container tr th:nth-child(3),
     #order-list-container tr td:nth-child(3),
-    #order-list-container tr th:nth-child(7),
-    #order-list-container tr td:nth-child(7),
     #order-list-container tr th:nth-child(8),
-    #order-list-container tr td:nth-child(8){
+    #order-list-container tr td:nth-child(8),
+    #order-list-container tr th:nth-child(9),
+    #order-list-container tr td:nth-child(9)
+    /*#order-list-container tr th:nth-child(5),*/
+    /*#order-list-container tr td:nth-child(5),*/
+
+    {
         width: 100%;
         border: 3px;
         white-space: normal;
@@ -241,3 +249,62 @@ a.desc:after {
         height: 100% !important;
     }
 }
+
+.order{
+    width: 20%;
+    float: left;
+    /*border: 1px double black;*/
+}
+
+.order-text{
+    font-size: 17px;
+    display: flex;
+    width: 75%;
+    margin: auto;
+    padding-bottom:10px;
+}
+
+.order-item-map{
+    width: 100%;
+    opacity: 75%;
+
+    display: flex;
+    justify-content: space-between;
+    font-size: 17px;
+}
+
+.order-map{
+    float: right
+}
+
+.separator{
+    display: flex;
+    left: 5px;
+    position: relative;
+    top: 30px;
+}
+
+.nav-map a{
+    color: white!important;
+}
+
+.order-status-28 option[value="29"]{
+background-color:green ;
+color:white;
+}
+
+.order-status-28{
+    background-color:green ;
+    color:white;
+}
+
+.order-status-28 option[value="20"]{
+    background-color:red ;
+    color:white;
+}
+
+.order-status-30{
+    background-color:red ;
+    color:white;
+}
+

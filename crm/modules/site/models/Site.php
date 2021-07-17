@@ -16,8 +16,9 @@ class Site extends SiteModel
     public function rules()
     {
         return [
-            [['is_main', 'is_denial'], 'boolean'],
+            [['is_main', 'is_denial','is_active_personal_area','is_active_map'], 'boolean'],
             ['probability', 'integer', 'min' => 1, 'max' => 99],
+            [['city','city_lon','city_lat'], 'safe'],
             ['parent_id', 'validateParentId'],
             [['probability', 'timezone'], 'required', 'when' => function ($model) {
                 return !empty($model->parent_id);

@@ -1,8 +1,9 @@
-    <?php
+<?php
 
 use common\components\settings\models\StatusModel;
 use crm\modules\order\models\Order;
 use crm\modules\order\models\OrderSearch;
+use crm\modules\site\models\Site;
 use kartik\date\DatePicker;
 use kartik\editable\Editable;
 use kartik\grid\EditableColumn;
@@ -18,10 +19,10 @@ use yii\web\View;
 
 $this->title = 'Заказы';
 $this->params['breadcrumbs'][] = $this->title;
-
 $statusList = Order::getAvailableStatuses();
 /* @var $query \yii\db\ActiveQuery */
 $query = clone $dataProvider->query;
+
 $dataSumm = Yii::$app
     ->db
     ->createCommand($query->select([
@@ -32,6 +33,16 @@ $dataSumm = Yii::$app
     ])->createCommand()->rawSql)
     ->queryOne();
 ?>
+<?php if($site['is_active_personal_area']){ ?>
+    <div class="menu-list" style="padding-bottom: 10px">
+        <?= Html::a('Все' , ['/order/default/list'], ['class' => 'btn btn-primary','style'=>'width:125px']) ?>
+        <?= Html::a('Мои' , ['/order/default/list-personal'], ['class' => 'btn btn-warning','style'=>'width:125px']) ?>
+    </div>
+    <div class="menu-list" style="padding-bottom: 20px">
+        <?= Html::a('Свободные' , ['/order/default/list-paint'], ['class' => 'btn btn-danger','style'=>'width:125px']) ?>
+        <?= Html::a('Готов к сборке' , ['/order/default/list-build'], ['class' => 'btn btn-info','style'=>'width:125px']) ?>
+    </div>
+<?php } ?>
 <div class="order-list">
     <?= GridView::widget([
         'filterModel' => $searchModel,
@@ -60,7 +71,7 @@ $dataSumm = Yii::$app
                 'format' => 'raw',
                 'value' => function (Order $model) {
                     return Html::a($model->crm_id, ['view', 'id' => $model->id]);
-                }
+                },
             ],
             [
                 'label' => 'Дата и время',
@@ -98,7 +109,7 @@ $dataSumm = Yii::$app
                     }
                     $li = '';
                     foreach ($items as $item) {
-                        if (isset($item['imageUrl'])) { // Проверка на наличие ссылки на картинку (новое поле) убрать через неделю
+                        if (isset($item['imageUrl'])) {
                             $name = $item->name;;
                             $img =  Html::a(Html::img($item->imageUrl, ['width' => 45, 'height' => 45]), $item->imageUrl, [
                                 'target' => '_blank',
@@ -126,6 +137,16 @@ $dataSumm = Yii::$app
             [
                 'label' => 'Адрес доставки',
                 'attribute' => 'deliveryAddress',
+            ],
+            [
+                'label' => 'Тип доставки',
+                'attribute' => 'delivery_type',
+                'filter' => Html::activeDropDownList(
+                    $searchModel,
+                    'delivery_type',
+                    ['Самовывоз'=>'Самовывоз','Доставка курьером'=>'Доставка курьером'],
+                    ['class' => 'form-control', 'prompt' => 'Все']
+                ),
             ],
             [
                 'label' => 'Получатель',
@@ -160,20 +181,20 @@ $dataSumm = Yii::$app
                 'headerOptions' => ['style' => 'width: 150px;'],
 
                 'class' => EditableColumn::class,
-                //'contentOptions'=> ['style'=>'width:300px'],
                 'editableOptions' => function ($model, $key, $index) use ($statusList) {
 
                     return [
                         'header' => 'статус',
                         'formOptions' => ['action' => ['update-status']],
                         'inputType' => Editable::INPUT_DROPDOWN_LIST,
+                        'options'=>['class'=>'order-status-'.$model->status->id,'onchange'=>'change'.$model->status->code.'(this)'],
                         'placement' => PopoverX::ALIGN_LEFT_BOTTOM,
-                        "data" => Order::getListStatus($model->status->id,$model->delivery_type),
+                        "data" =>  Order::getListStatus($model->status->id,$model->delivery_type),
                         'displayValue' => $model->status ? Html::tag('span', $model->status->name, [
                             'class' => 'btn btn-status',
                             'style' => "background: {$model->status->bgColor}",
                         ]) : '-',
-                        'editableValueOptions'=> Order::checkPermission($model->status->id)? []:['disabled'=>''],
+                        'editableValueOptions'=> Order::checkPermission($model->status->id,$model->user_id)? []:['disabled'=>''],
 
                     ];
 
@@ -210,6 +231,15 @@ $dataSumm = Yii::$app
         ],
     ]) ?>
 </div>
+<script>
+    function changevpokraske (elem){
+        if(elem.style.backgroundColor === "rgb(255, 0, 0)"){
+            elem.style.backgroundColor = "#008000";
+        }else{
+            elem.style.backgroundColor = "#FF0000";
+        }
+    }
+</script>
 <?php $this->registerJs('
 $(".kv-editable-submit").click(function e(){setTimeout(function(){
 location.reload();

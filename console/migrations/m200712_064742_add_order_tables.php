@@ -39,6 +39,7 @@ class m200712_064742_add_order_tables extends Migration
             'delivery_date' => $this->date(),
             'delivery_time' => $this->string()->null(),
             'delivery_time_ordering' => $this->integer()->null(),
+            'delivery_time_ordering_start' => $this->integer()->null(),
             'delivery_cost' => $this->integer()->defaultValue(0),
             'total_summ' => $this->integer()->defaultValue(0),
             'prepay_sum' => $this->integer()->defaultValue(0),

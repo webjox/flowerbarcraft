@@ -21,6 +21,11 @@ use yii\db\ActiveRecord;
  * @property string $timezone [varchar(255)]
  * @property bool $is_main [tinyint(1)]
  * @property bool $is_denial [tinyint(1)]
+ * @property bool $is_active_personal_area [tinyint(1)]
+ * @property bool $is_active_map [tinyint(1)]
+ * @property bool $city [varchar(200)]
+ * @property bool $city_lon [double]
+ * @property bool $city_lat [double]
  *
  * @property-read SiteModel[] $children
  * @property-read User[] $users
@@ -76,6 +81,11 @@ class SiteModel extends ActiveRecord
             'is_main' => 'Главный',
             'is_denial' => 'Отказной',
             'parent_id' => 'Родительский магазин',
+            'is_active_personal_area'=>'Разделение на кабинеты',
+            'is_active_map'=>'Карта с заказами',
+            'city'=>'Город',
+            'city_lon'=>'Город долгота',
+            'city_lat'=> 'Город широта',
         ];
     }
 

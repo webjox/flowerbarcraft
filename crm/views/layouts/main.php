@@ -5,6 +5,7 @@
 
 use common\models\User;
 use crm\assets\AppAsset;
+use crm\modules\site\models\Site;
 use yii\helpers\Html;
 use yii\bootstrap\Nav;
 use yii\bootstrap\NavBar;
@@ -26,8 +27,8 @@ AppAsset::register($this);
     <?php $this->head() ?>
 </head>
 <body>
+<? $site = Site::find()->where(['id'=>Yii::$app->user->identity->site_id])->one() ?>
 <?php $this->beginBody() ?>
-
 <div class="wrap">
     <?php
     NavBar::begin([
@@ -45,8 +46,10 @@ AppAsset::register($this);
         ];
     } elseif (Yii::$app->user->can(User::ROLE_FLORIST)) {
         $menuItems = [
-            ['label' => 'Заказы', 'url' => ['/order/default/list']],
+            ['label' => 'Заказы', 'url' => ['/order/default/list']],  //,'options'=>['style'=>'background-color:red']
+            $site->is_active_map?['label' => 'Карта', 'url' => ['/map/default/index'],'options'=>['style'=>'background-color:grey;','class'=>'nav-map']]:"",
             ['label' => 'Настройка оповещений', 'url' => ['/notifications/default/index']],
+
         ];
     } else {
         $menuItems = [];

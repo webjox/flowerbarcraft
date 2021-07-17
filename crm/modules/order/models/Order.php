@@ -95,7 +95,7 @@ class Order extends OrderModel
                         $ext = substr(strrchr($shortname, '.'), 1);
                         if(in_array($ext,$allowedFiles)){
                             //save the url and the file
-                            $newFileName = date("Y-m-d")."-".$shortname;
+                            $newFileName = $shortname;
                             //Upload the file into the temp dir
                             if (move_uploaded_file($tmpFilePath, 'images'. '/' . $newFileName)) {
                                 $files[] =['fileName'=>$newFileName,'type'=>$ext,'size'=>(($size/1000)),'originalName'=>$shortname];
@@ -124,11 +124,19 @@ class Order extends OrderModel
     }
 
 
-    public static function checkPermission($status)
+    public static function checkPermission($status,$user_id)
     {
         $model=StatusModel::find()->where(['active' => true, 'available' => true,'id'=>$status,'permission'=>true])->one();
         $nextStatus = StatusModel::find()->where(['active' => true, 'available' => true,'id'=>$model['nextStatus']])->one();
+
         if($model&&$nextStatus){
+            if($model['name']=="В покраске "||$model['name']=="Собирается"){
+                if($user_id==Yii::$app->user->identity->id){
+                    return true;
+                }else{
+                    return false;
+                }
+            }
             return true;
         }
         else return false;
@@ -141,7 +149,11 @@ class Order extends OrderModel
         if($status == 4 && $type =="Доставка курьером"|| $status == 13 && $type =="Самовывоз"){
             return StatusModel::find()->select(['name', 'id'])->where(['active' => true, 'available' => true,'id'=>2])->indexBy('id')->column();
         }else {
-            return StatusModel::find()->select(['name', 'id'])->where(['active' => true, 'available' => true, 'id' => $model['nextStatus']])->indexBy('id')->column();
+            if($status == 28){
+                return StatusModel::find()->select(['name', 'id'])->where(['active' => true, 'available' => true, 'id' => [$model['nextStatus'],20]])->orderBy(['id'=>SORT_DESC])->indexBy('id')->column();
+            }else {
+                return StatusModel::find()->select(['name', 'id'])->where(['active' => true, 'available' => true, 'id' => $model['nextStatus']])->indexBy('id')->column();
+            }
         }
     }
 
@@ -172,6 +184,7 @@ class Order extends OrderModel
             'deliveryAddressList' => 'Адрес',
             'delivery_date' => 'Дата',
             'delivery_time' => 'Время',
+            'delivery_time_start' => 'Время Старт',
             'deliveryCost' => 'Стоимость',
             'delivery_type' => 'Тип',
             'totalSumm' => 'Общая стоимость',
@@ -470,16 +483,34 @@ class Order extends OrderModel
         try {
             Yii::info("Старт процесса: Изменение статуса у заказа #{$this->crm_id}", 'retailcrm');
             $crm = RetailCrm::getInstance();
-            $resp = $crm->request->ordersEdit([
-                'id' => $this->crm_id,
-                'status' => $this->status->code,
-            ], 'id', $this->site->code);
-            if ($resp->isSuccessful()) {
-                Yii::info("Завершение процесса: Изменение статуса у заказа #{$this->crm_id}\nСтатус: success", 'retailcrm');
-            } else {
-                Yii::info("Завершение процесса: Изменение статуса у заказа #{$this->crm_id}\nСтатус: fail", 'retailcrm');
-                throw new BadRequestHttpException();
+            if($this->status->code=="vpokraske"){
+                $resp = $crm->request->ordersEdit([
+                    'id' => $this->crm_id,
+                    'status' => "assembling",
+                ], 'id', $this->site->code);
+                file_put_contents('data-status-status.json',$this->site->code);
+                if ($resp->isSuccessful()) {
+                    Yii::info("Завершение процесса: Изменение статуса у заказа #{$this->crm_id}\nСтатус: success", 'retailcrm');
+                } else {
+                    Yii::info("Завершение процесса: Изменение статуса у заказа #{$this->crm_id},{$this->status->code}}\nСтатус: fail", 'retailcrm');
+                    throw new BadRequestHttpException();
+                }
             }
+            if($this->status->code=="pokrashen"||$this->status->code=="sobiraetsya") {
+
+            }else{
+                $resp = $crm->request->ordersEdit([
+                    'id' => $this->crm_id,
+                    'status' => $this->status->code,
+                ], 'id', $this->site->code);
+                file_put_contents('data-status-status.json',$this->site->code);
+                if ($resp->isSuccessful()) {
+                    Yii::info("Завершение процесса: Изменение статуса у заказа #{$this->crm_id}\nСтатус: success", 'retailcrm');
+                } else {
+                    Yii::info("Завершение процесса: Изменение статуса у заказа #{$this->crm_id},{$this->status->code}}\nСтатус: fail", 'retailcrm');
+                    throw new BadRequestHttpException();
+            }
+          }
         } catch (Exception $e) {
             Yii::info("Ошибка при изменении статуса у заказа #{$this->crm_id}", 'retailcrm');
             (new OrderUpdateQueueModel([
@@ -487,5 +518,6 @@ class Order extends OrderModel
                 'status_id' => $this->status_id,
             ]))->save(false);
         }
+
     }
 }

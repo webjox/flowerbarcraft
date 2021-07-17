@@ -7,7 +7,7 @@ use yii\base\Model;
 
 /**
  * Class OrderItemWebhookModel
- * @package crm\modules\order\models
+ * @package crm\modules\order\modelsx
  */
 class OrderItemWebhookModel extends Model
 {

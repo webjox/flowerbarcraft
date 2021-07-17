@@ -29,7 +29,10 @@ $mainSites = Site::find()
                 <?= $form->errorSummary($model); ?>
                 <?= $form->field($model, 'name')->textInput(['disabled' => true]) ?>
                 <?= $form->field($model, 'code')->textInput(['disabled' => true]) ?>
+                <?= $form->field($model, 'city')->textInput() ?>
                 <?= $form->field($model, 'is_main')->checkbox(['id' => 'is-main']) ?>
+                <?= $form->field($model, 'is_active_personal_area')->checkbox(['id' => 'is_active_personal_area']) ?>
+                <?= $form->field($model, 'is_active_map')->checkbox(['id' => 'is_active_map']) ?>
                 <?= $form->field($model, 'is_denial')
                     ->checkbox(['id' => 'is-denial'])
                     ->hint('Можно выбрать только один отказной магазин. Если выбрать несколько, то отказным будет последний сохраненный, остальные станут обычными.') ?>

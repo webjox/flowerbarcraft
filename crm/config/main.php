@@ -21,7 +21,7 @@ return [
         ],
         'formatter' => [
             'class' => 'yii\i18n\Formatter',
-            'locale' => 'en-US', //ej. 'es-ES'
+            'locale' => 'yourLocale', //ej. 'es-ES'
             'thousandSeparator' => '.',
             'decimalSeparator' => ',',
             'currencyCode' => 'RUB',
@@ -88,7 +88,8 @@ return [
                 'notifications' => 'notifications/default/index',
                 'webhook/<action:[a-z-]+>' => 'webhook/<action>',
                 'tg/callback' => 'tg/callback',
-
+                'map'=>'map/default/index',
+                'map/<action:[a-z-]+>/<id:[0-9]+>' => 'map/default/<action>'
             ],
         ],
     ],
@@ -131,6 +132,18 @@ return [
         ],
         'order' => [
             'class' => 'crm\modules\order\OrderModule',
+            'as access' => [
+                'class' => 'yii\filters\AccessControl',
+                'rules' => [
+                    [
+                        'allow' => true,
+                        'roles' => [User::ROLE_FLORIST],
+                    ],
+                ],
+            ],
+        ],
+        'map' => [
+            'class' => 'crm\modules\map\MapModule',
             'as access' => [
                 'class' => 'yii\filters\AccessControl',
                 'rules' => [

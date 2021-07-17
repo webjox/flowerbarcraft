@@ -4,6 +4,7 @@ use common\components\order\models\OrderDeliveryModel;
 use common\components\order\models\OrderItemModel;
 use common\components\order\models\OrderPaymentModel;
 use common\components\yandexGoDelivery\YaDeliveryClient;
+use common\models\User;
 use crm\modules\order\models\Order;
 use kartik\detail\DetailView;
 use kartik\editable\Editable;
@@ -61,6 +62,7 @@ $delivery = Yii::$app->user->identity->delivery ?? null;
                         'additionalData' => ['editableIndex' => 0, 'editableKey' => $model->id],
                         'formOptions' => ['action' => ['update-status']],
                         'attribute' => '[0]status_id',
+                        'options'=>['class'=>'order-status-'.$model->status->id,'onchange'=>'change'.$model->status->code.'(this)'],
                         'displayValue' => (function () use ($model) {
                             return $model->status ? Html::tag('span', $model->status->name, [
                                 'class' => 'btn btn-status',
@@ -72,7 +74,7 @@ $delivery = Yii::$app->user->identity->delivery ?? null;
                         'asPopover' => true,
                         'inputType' => Editable::INPUT_DROPDOWN_LIST,
                         'data' => Order::getListStatus($model->status_id,$model->delivery_type),
-                        'editableValueOptions'=> Order::checkPermission($model->status_id)? []:['disabled'=>''],
+                        'editableValueOptions'=> Order::checkPermission($model->status_id,$model->user_id)? []:['disabled'=>''],
                     ]);
 
                 },
@@ -85,11 +87,9 @@ $delivery = Yii::$app->user->identity->delivery ?? null;
                     },
                 'format' => 'raw',
                 'visible'=>(function() use ($model){
-                    if ($model->status_id==19 || $model->status_id==26) return true;
+                    if ($model->user_id==Yii::$app->user->identity->id&&($model->status_id==19 || $model->status_id==26 || $model->status_id==30)||$model->status_id==19) return true;
                     else return false;
                 })(),
-
-
             ],
             [
                 'attribute'=> 'comment',
@@ -104,6 +104,20 @@ $delivery = Yii::$app->user->identity->delivery ?? null;
             'created_at:datetime',
             'customer',
             'recipient',
+            [
+                'attribute'=> 'user_id',
+                'label'=>'Флорист',
+                'value'=>function() use ($model){
+                    $user = User::find()->where(['id'=>$model->user_id])->one();
+                    return $user['username'];
+                },
+                'format' => 'raw',
+                'visible'=>(function() use ($model){
+                    if($model->user_id) return true;
+                    else return false;
+                })(),
+
+            ],
             [
                 'attribute' => 'customer_comment',
                 'value' => function () use ($model) {
@@ -541,6 +555,15 @@ $("#ya-delivery-form").on("beforeSubmit", function() {
 });
 ');
 ?>
+<script>
+    function changevpokraske (elem){
+        if(elem.style.backgroundColor === "rgb(255, 0, 0)"){
+            elem.style.backgroundColor = "#008000";
+        }else{
+            elem.style.backgroundColor = "#FF0000";
+        }
+    }
+</script>
 
 
 

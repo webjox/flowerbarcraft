@@ -68,6 +68,8 @@ class SiteController extends Controller
         throw new ForbiddenHttpException('Доступ запрещен');
     }
 
+
+
     /**
      * Login action.
      *
@@ -75,10 +77,6 @@ class SiteController extends Controller
      */
     public function actionLogin()
     {
-        if (!Yii::$app->user->isGuest) {
-            return $this->goHome();
-        }
-
         $model = new LoginForm();
         if ($model->load(Yii::$app->request->post()) && $model->login()) {
             return $this->goBack();

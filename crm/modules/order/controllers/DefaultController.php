@@ -64,7 +64,7 @@ class DefaultController extends Controller
                     ],
                     [
                         'allow' => true,
-                        'actions' => ['list', 'view', 'download', 'accept', 'reject', 'create-delivery', 'get-delivery-status', 'cancel-delivery', 'accept-delivery','upload','delete','load-image'],
+                        'actions' => ['list', 'view', 'download', 'accept', 'reject', 'create-delivery', 'get-delivery-status', 'cancel-delivery', 'accept-delivery','upload','delete','load-image','list-personal','list-paint','list-build'],
                         'roles' => [User::ROLE_FLORIST],
                     ],
                 ],
@@ -85,6 +85,34 @@ class DefaultController extends Controller
                 'class' => EditableColumnAction::class,
                 'modelClass' => Order::class,
                 'outputValue' => function ($model) {
+                     if($model->status->name=="Заказ принят") {
+                        $model->user_id = " ";
+                        $model->statusCrm = 1;
+                        $model->save();
+                    }
+                    if($model->status->name=="В РАБОТЕ") {
+                        $site = Site::find()->where(['id'=>$model->site_id])->one();
+                        if($site['is_active_personal_area']){
+                            $model->user_id = Yii::$app->user->getIdentity()->id;;
+                            $model->statusCrm = 2;
+                            $model->save();
+                        }
+                    }
+                    if($model->status->name=="В покраске ") {
+                        $model->user_id = Yii::$app->user->getIdentity()->id;
+                        $model->statusCrm = 2;
+                        $model->save();
+                    }
+                    if($model->status->name=="Покрашен") {
+                        $model->user_id = Yii::$app->user->getIdentity()->id;
+                        $model->statusCrm = 3;
+                        $model->save();
+                    }
+                    if($model->status->name=="Собирается") {
+                        $model->user_id = Yii::$app->user->getIdentity()->id;
+                        $model->statusCrm = 2;
+                        $model->save();
+                    }
                     return $model->status ? Html::tag('span', $model->status->name, [
                         'class' => 'btn btn-status',
                         'style' => "background: {$model->status->bgColor}"
@@ -92,7 +120,6 @@ class DefaultController extends Controller
                 },
             ]
         ]);
-
     }
 
     /**
@@ -102,11 +129,63 @@ class DefaultController extends Controller
     {
         $searchModel = new OrderSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
-
+        $site = Site::find()->where(['id'=>Yii::$app->user->identity->site_id])->one();
 
         return $this->render('list', [
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
+            'site'=>$site,
+        ]);
+    }
+
+    public function actionListPersonal()
+    {
+        $searchModel = new OrderSearch();
+        $site = Site::find()->where(['id'=>Yii::$app->user->identity->site_id])->one();
+        if($site['is_active_personal_area']) {
+            $dataProvider = $searchModel->searchPersonal(Yii::$app->request->queryParams);
+        }else{
+            $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+        }
+
+        return $this->render('list', [
+            'searchModel' => $searchModel,
+            'dataProvider' => $dataProvider,
+            'site'=>$site,
+        ]);
+    }
+
+    public function actionListPaint()
+    {
+        $searchModel = new OrderSearch();
+        $site = Site::find()->where(['id'=>Yii::$app->user->identity->site_id])->one();
+        if($site['is_active_personal_area']) {
+            $dataProvider = $searchModel->searchPaint(Yii::$app->request->queryParams);
+        }else{
+            $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+        }
+
+        return $this->render('list', [
+            'searchModel' => $searchModel,
+            'dataProvider' => $dataProvider,
+            'site'=>$site,
+        ]);
+    }
+
+    public function actionListBuild()
+    {
+        $searchModel = new OrderSearch();
+        $site = Site::find()->where(['id'=>Yii::$app->user->identity->site_id])->one();
+        if($site['is_active_personal_area']) {
+            $dataProvider = $searchModel->searchBuild(Yii::$app->request->queryParams);
+        }else{
+        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+        }
+
+        return $this->render('list', [
+            'searchModel' => $searchModel,
+            'dataProvider' => $dataProvider,
+            'site'=>$site,
         ]);
     }
 
@@ -293,6 +372,7 @@ class DefaultController extends Controller
             $model = Order::find()->where(['id'=>$id])->one();
             $id_status = Status::find()->select('id')->where(["name"=>"На согласовании"])->one();
             $model->status_id = $id_status['id'];
+            $model->statusCrm = 4;
             $model->save();
             return $this->redirect('/order/view/'.$id);
         }

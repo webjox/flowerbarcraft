@@ -40,16 +40,21 @@ class Order
     public $delivery_address_floor;
     public $delivery_address_metro;
     public $delivery_address_notes;
+    public $delivery_address_geo_lon;
+    public $delivery_address_geo_lat;
     public $delivery_type;
     public $delivery_date;
     public $delivery_time;
     public $delivery_time_ordering;
+    public $delivery_time_ordering_start;
     public $delivery_cost;
     public $initial_product_summ;
     public $summ;
     public $total_summ;
     public $prepay_sum;
     public $to_pay_summ;
+//    public $user_id;
+//    public $statusCrm;
 
     private $_isConfirmed = false;
 
@@ -76,7 +81,7 @@ class Order
     public static function create(array $data)
     {
         $order = new self();
-          file_put_contents('data-all.json', $data);
+        file_put_contents('data-all.json', $data);
         //   file_put_contents('data-status.json', $data['statusCode']);
         //   file_put_contents('data-type.json', $data['deliveryType']);
         $order->crm_id = !empty($data['id']) ? $data['id'] : null;
@@ -92,7 +97,21 @@ class Order
                 $order->setConfirmed();
             }
             $statusId = StatusModel::find()->select('id')->where(['code' => $data['statusCode']])->scalar();
-            $order->status_id = $statusId != false ? $statusId : null;
+            if ($siteCode) {
+                $siteIsActive = SiteModel::find()->select('is_active_personal_area')->where(['code' => $siteCode])->scalar();
+                if($siteIsActive) {
+//                    if($statusId == 20){
+//                        $order->statusCrm = 1;
+//                    }
+                    if ($statusId == 19) {
+                        $order->status_id = 28;
+                    } else {
+                        $order->status_id = $statusId != false ? $statusId : null;
+                    }
+                }else{
+                    $order->status_id = $statusId != false ? $statusId : null;
+                }
+            }
         }
         $order->created_at = !empty($data['createdAt']) ? $data['createdAt'] : null;
         $order->customer_last_name = !empty($data['lastName']) ? $data['lastName'] : null;
@@ -117,6 +136,7 @@ class Order
         $order->delivery_date = !empty($data['deliveryDate']) ? $data['deliveryDate'] : null;
         $order->delivery_time = !empty($data['deliveryTime']) ? $data['deliveryTime'] : null;
         $order->setDeliveryTimeOrdering($order->delivery_time);
+        $order->setDeliveryTimeOrderingStart($order->delivery_time);
         $order->delivery_cost = !empty($data['deliveryCost']) ? (int)($data['deliveryCost'] * 100) : 0;
         $order->initial_product_summ = !empty($data['initialProductSumm']) ? (int)($data['initialProductSumm'] * 100) : 0;
         $order->summ = !empty($data['summ']) ? (int)($data['summ'] * 100) : 0;
@@ -125,19 +145,28 @@ class Order
         $order->to_pay_summ = !empty($data['toPaySumm']) ? (int)($data['toPaySumm'] * 100) : 0;
         $order->recipient_name = !empty($data['recipientName']) ? $data['recipientName'] : null;
         $order->recipient_phone = !empty($data['recipientPhone']) ? $data['recipientPhone'] : null;
-        // if($data['deliveryType']=="Самовывоз"&&$data['statusCode']=="client-confirmed"){
-        //     $statusId = StatusModel::find()->select('id')->where(['code' => $data['statusCode']])->scalar();
-        //     $order->status_id = 2;
-        // }
-        //  if($data['deliveryType']=="Доставка курьером"&&$data['statusCode']=="delivering"){
-        //     $statusId = StatusModel::find()->select('id')->where(['code' => $data['statusCode']])->scalar();
-        //     $order->status_id = 2;
-        // }
-         if($siteId==34) {
-          file_put_contents('data-all.json', $data);
-          file_put_contents('data-status.json', $data['statusCode']);
-          file_put_contents('data-type.json', $data['deliveryType']);
-         }
+        if($data['deliveryType']=="Доставка курьером"){
+            $address = $data['deliveryAddress'];
+            $parameters = array(
+                'apikey' => '10d0aae4-eb7c-4e41-91f3-1d6217a9b798',
+                'geocode' => $address,
+                'format' => 'json'
+            );
+            $response = file_get_contents('https://geocode-maps.yandex.ru/1.x/?'. http_build_query($parameters));
+            $obj = json_decode($response, true);
+            if($obj) {
+                $cord = explode(' ', $obj['response']['GeoObjectCollection']['featureMember'][0]['GeoObject']['Point']['pos']);
+                $order->delivery_address_geo_lon = $cord[0];
+                $order->delivery_address_geo_lat = $cord[1];
+            }else{
+                //Придумать как оповещать менеджеров, если адрес введен некорректно
+            }
+        }
+        if($siteId==34) {
+            file_put_contents('data-all.json', $data);
+            file_put_contents('data-status.json', $data['statusCode']);
+            file_put_contents('data-type.json', $data['deliveryType']);
+        }
         if (!empty($data['items'])) {
             $order->setItems($data['items']);
             if($siteId==34) file_put_contents('data-value.json', $data['items']);
@@ -158,18 +187,41 @@ class Order
             $this->delivery_time_ordering = null;
         } else {
             $value = (int)preg_replace("/[^0-9]/", '', $value);
+
+            //  while(log10($value)<9){
+            //      $value*=10;
+            //  }
+              file_put_contents('data-time.json', $value);
+            if ($value > 2359) {
+                $value = (int)($value % 10000);
+            }
+            $this->delivery_time_ordering = $value;
+        }
+    }
+
+    public function setDeliveryTimeOrderingStart($value)
+    {
+        if (empty($value)) {
+            $this->delivery_time_ordering_start = null;
+        } else {
+            $value = (int)preg_replace("/[^0-9]/", '', $value);
+
+            //  while(log10($value)<9){
+            //      $value*=10;
+            //  }
+            file_put_contents('data-time.json', $value);
             if ($value > 2359) {
                 $value = (int)($value / 10000);
             }
-            $this->delivery_time_ordering = $value;
+            $this->delivery_time_ordering_start = $value;
         }
     }
 
     public function setItems($value)
     {
         $items = json_decode(html_entity_decode($value), true);
-        
-          file_put_contents('data-value.json', $value);
+
+        file_put_contents('data-value.json', $value);
         if (!empty($items) && is_array($items)) {
             foreach ($items as $item) {
                 if (is_array($item)) {

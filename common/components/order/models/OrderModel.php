@@ -48,10 +48,13 @@ use yii\db\ActiveRecord;
  * @property string $delivery_address_floor [varchar(255)]
  * @property string $delivery_address_metro [varchar(255)]
  * @property string $delivery_address_notes
+ * @property string $delivery_address_geo_lon [double(11)]
+ * @property string $delivery_address_geo_lat [double(11)]
  * @property string $delivery_type [varchar(255)]
  * @property string $delivery_date [date]
  * @property string $delivery_time [varchar(255)]
  * @property int $delivery_time_ordering [int(11)]
+ * @property int $delivery_time_ordering_start [int(11)]
  * @property int $delivery_cost [int(11)]
  * @property int $summ [int(11)]
  * @property int $initial_product_summ [int(11)]
@@ -59,6 +62,8 @@ use yii\db\ActiveRecord;
  * @property int $prepay_sum [int(11)]
  * @property int $to_pay_summ [int(11)]
  * @property string $token [varchar(255)]
+ * @property int $user_id [int(11)]
+ * @property int $statusCrm [int(11)]
  *
  * @property OrderItemModel[] $items
  * @property OrderFileModel[] $files

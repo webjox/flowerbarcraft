@@ -24,15 +24,12 @@ echo FileInput::widget([
             'showRemove' => false,
             'showUpload' => false,
         ],
-        'maxFileCount' => 20, 'maxFileSize' => 50000,
+        'maxFileCount' => 20, 'maxFileSize' => 10000,
     ],
     'pluginEvents' => [
         'filebatchselected' => 'function() {
-        $(this).fileinput("upload");
-        }',
-        'fileloaded' => 'function(){
-        $("#send-picture").css("display","block");
-        }',
+$(this).fileinput("upload");
+}',
     ],
 ]);
 ?>
@@ -40,7 +37,7 @@ echo FileInput::widget([
 
     <?= $form->field($input, 'crm')->hiddenInput(['value'=>$model->crm_id])->label(false) ?>
 
-    <button id="send-picture" class="btn btn-primary" style="float: right;width: 125px; display: none" >Отправить</button>
+    <button class="btn btn-primary" style="float: right;width: 125px;" >Отправить</button>
 
     <?php ActiveForm::end() ?>
 
